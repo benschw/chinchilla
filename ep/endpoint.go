@@ -1,32 +1,33 @@
 package ep
 
 import (
-	"bytes"
 	"log"
-	"time"
 
 	"github.com/streadway/amqp"
 )
 
-func NewEndpoint(conn *amqp.Connection, cfg EndpointConfig) *Endpoint {
-	return &Endpoint{Conn: conn, Config: cfg}
+func NewEndpoint(conn *amqp.Connection, cfg EndpointConfig) (*Endpoint, error) {
+	ch, err := conn.Channel()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Endpoint{Ch: ch, Config: cfg, exit: make(chan bool), exitResp: make(chan bool)}, nil
 }
 
 type Endpoint struct {
-	Conn   *amqp.Connection
-	Config EndpointConfig
+	Ch       *amqp.Channel
+	Config   EndpointConfig
+	exit     chan bool
+	exitResp chan bool
 }
 
-func (e *Endpoint) Run() error {
-	log.Printf("Binding to Queue '%s'", e.Config.QueueName)
-	ch, err := e.Conn.Channel()
-	if err != nil {
-		log.Println(err)
-		panic(err)
-	}
-	defer ch.Close()
+func (e *Endpoint) Run() {
+	defer e.Ch.Close()
 
-	q, err := ch.QueueDeclare(
+	log.Printf("Binding to Queue '%s'", e.Config.QueueName)
+
+	q, err := e.Ch.QueueDeclare(
 		e.Config.QueueName, // name
 		true,               // durable
 		false,              // delete when unused
@@ -39,7 +40,7 @@ func (e *Endpoint) Run() error {
 		panic(err)
 	}
 
-	err = ch.Qos(
+	err = e.Ch.Qos(
 		1,     // prefetch count
 		0,     // prefetch size
 		false, // global
@@ -49,7 +50,7 @@ func (e *Endpoint) Run() error {
 		panic(err)
 	}
 
-	msgs, err := ch.Consume(
+	msgs, err := e.Ch.Consume(
 		q.Name, // queue
 		"",     // consumer
 		false,  // auto-ack
@@ -63,20 +64,26 @@ func (e *Endpoint) Run() error {
 		panic(err)
 	}
 
-	forever := make(chan bool)
+	for {
+		select {
+		case <-e.exit:
+			e.exitResp <- true
+			return
 
-	go func() {
-		for d := range msgs {
+		case d := <-msgs:
 			log.Printf("Received a message on %s: %s", e.Config.QueueName, d.Body)
 			d.Ack(false)
-			dot_count := bytes.Count(d.Body, []byte("."))
-			t := time.Duration(dot_count)
-			time.Sleep(t * time.Second)
 			log.Printf("Done")
 		}
-	}()
+	}
 
-	<-forever
+}
 
-	return nil
+func (e *Endpoint) Stop() {
+	log.Printf("Stopping consuming from queue %s", e.Config.QueueName)
+
+	e.exit <- true
+	<-e.exitResp
+
+	log.Printf("Stopped consuming from queue %s", e.Config.QueueName)
 }

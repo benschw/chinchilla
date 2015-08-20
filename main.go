@@ -7,8 +7,6 @@ import (
 	"os"
 
 	"github.com/benschw/chinchilla/ep"
-	"github.com/benschw/dns-clb-go/clb"
-	"github.com/benschw/dns-clb-go/dns"
 	"github.com/benschw/opin-go/config"
 )
 
@@ -29,11 +27,11 @@ func main() {
 		os.Exit(1)
 	}
 	//ap := clb.NewAddressProvider("rabbit.service.consul")
-	ap := &clb.StaticAddressProvider{Address: dns.Address{
-		Address: "localhost",
-		Port:    5672,
-	}}
-	svc := ep.New(ap, cfg)
+	//	ap := &clb.StaticAddressProvider{Address: dns.Address{
+	//		Address: "localhost",
+	//		Port:    5672,
+	//	}}
+	svc := ep.New(cfg)
 
 	if err := svc.Run(); err != nil {
 		log.Println(err)
