@@ -1,0 +1,10 @@
+
+endpoints:
+  -
+    uri: /bar
+    queuename: demo.bar
+    servicehost: http://localhost:8080
+  -
+    queuename: demo.foo
+    servicehost: http://localhost:8080
+    uri: /foo
