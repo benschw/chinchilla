@@ -6,13 +6,15 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func NewEndpoint(conn *amqp.Connection, cfg EndpointConfig) (*Endpoint, error) {
-	ch, err := conn.Channel()
-	if err != nil {
-		return nil, err
-	}
+func NewEndpoint(ch *amqp.Channel, cfg EndpointConfig) (*Endpoint, error) {
 
-	return &Endpoint{Ch: ch, Config: cfg, exit: make(chan bool), exitResp: make(chan bool)}, nil
+	return &Endpoint{
+		Ch:       ch,
+		Config:   cfg,
+		exit:     make(chan bool),
+		exitResp: make(chan bool),
+	}, nil
+
 }
 
 type Endpoint struct {
@@ -22,8 +24,7 @@ type Endpoint struct {
 	exitResp chan bool
 }
 
-func (e *Endpoint) Run() {
-	defer e.Ch.Close()
+func (e *Endpoint) Start() error {
 
 	log.Printf("Binding to Queue '%s'", e.Config.QueueName)
 
@@ -64,6 +65,10 @@ func (e *Endpoint) Run() {
 		panic(err)
 	}
 
+	go e.processMsgs(msgs)
+	return nil
+}
+func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery) {
 	for {
 		select {
 		case <-e.exit:
@@ -81,6 +86,7 @@ func (e *Endpoint) Run() {
 
 func (e *Endpoint) Stop() {
 	log.Printf("Stopping consuming from queue %s", e.Config.QueueName)
+	defer e.Ch.Close()
 
 	e.exit <- true
 	<-e.exitResp
