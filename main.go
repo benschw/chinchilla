@@ -33,15 +33,12 @@ func main() {
 	//		Address: "localhost",
 	//		Port:    5672,
 	//	}}
-	svc, err := ep.New(cfg)
-	if err != nil {
-		log.Println(err)
-		os.Exit(1)
-	}
+	svc := ep.New(cfg)
 	if err := svc.Start(); err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
+	defer svc.Stop()
 
 	// impl control flow with signals
 	sigCh := make(chan os.Signal, 1)
@@ -55,12 +52,9 @@ func main() {
 		case os.Interrupt:
 			fallthrough
 		case syscall.SIGTERM:
-			log.Printf("Stopping Endpoints")
-			svc.Stop()
-			log.Printf("All Endpoints Stopped")
-			os.Exit(0)
+			return
 		case syscall.SIGHUP:
-			log.Printf("Reconfiguring... one day")
+			svc.Reload()
 		}
 	}
 }

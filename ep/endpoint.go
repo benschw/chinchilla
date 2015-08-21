@@ -6,14 +6,14 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func NewEndpoint(ch *amqp.Channel, cfg EndpointConfig) (*Endpoint, error) {
+func NewEndpoint(ch *amqp.Channel, cfg EndpointConfig) *Endpoint {
 
 	return &Endpoint{
 		Ch:       ch,
 		Config:   cfg,
 		exit:     make(chan bool),
 		exitResp: make(chan bool),
-	}, nil
+	}
 
 }
 
@@ -37,8 +37,7 @@ func (e *Endpoint) Start() error {
 		nil,                // arguments
 	)
 	if err != nil {
-		log.Println(err)
-		panic(err)
+		return err
 	}
 
 	err = e.Ch.Qos(
@@ -47,8 +46,7 @@ func (e *Endpoint) Start() error {
 		false, // global
 	)
 	if err != nil {
-		log.Println(err)
-		panic(err)
+		return err
 	}
 
 	msgs, err := e.Ch.Consume(
@@ -61,8 +59,7 @@ func (e *Endpoint) Start() error {
 		nil,    // args
 	)
 	if err != nil {
-		log.Println(err)
-		panic(err)
+		return err
 	}
 
 	go e.processMsgs(msgs)
