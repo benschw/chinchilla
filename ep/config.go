@@ -5,6 +5,7 @@ type Config struct {
 }
 
 type EndpointConfig struct {
+	Name        string `json: "name"`
 	ServiceHost string `json: "servicehost"`
 	ServiceName string `json: "servicename"`
 	Uri         string `json: "uri"`

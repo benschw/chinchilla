@@ -8,13 +8,12 @@ import (
 
 func NewEndpoint(ch *amqp.Channel, cfg EndpointConfig) *Endpoint {
 
-	return &Endpoint{
-		Ch:       ch,
-		Config:   cfg,
+	ep := &Endpoint{
 		exit:     make(chan bool),
 		exitResp: make(chan bool),
 	}
-
+	ep.configure(ch, cfg)
+	return ep
 }
 
 type Endpoint struct {
@@ -24,8 +23,43 @@ type Endpoint struct {
 	exitResp chan bool
 }
 
-func (e *Endpoint) Start() error {
+func (e *Endpoint) configure(ch *amqp.Channel, cfg EndpointConfig) {
+	e.Ch = ch
+	e.Config = cfg
+}
 
+func (e *Endpoint) Reload(ch *amqp.Channel, cfg EndpointConfig) error {
+	log.Printf("Reloading endpoint %s", e.Config.Name)
+	e.Stop()
+	e.configure(ch, cfg)
+	err := e.Start()
+	log.Printf("Reloaded endpoint %s", e.Config.Name)
+	return err
+}
+
+func (e *Endpoint) Start() error {
+	msgs, err := e.bindToRabbit()
+	if err != nil {
+		return err
+	}
+
+	go e.processMsgs(msgs)
+
+	return nil
+}
+
+func (e *Endpoint) Stop() error {
+	log.Printf("Stopping endpoint %s", e.Config.Name)
+	defer e.Ch.Close()
+
+	e.exit <- true
+	<-e.exitResp
+
+	log.Printf("Stopped endpoint %s", e.Config.Name)
+	return nil
+}
+
+func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
 	log.Printf("Binding to Queue '%s'", e.Config.QueueName)
 
 	q, err := e.Ch.QueueDeclare(
@@ -37,7 +71,7 @@ func (e *Endpoint) Start() error {
 		nil,                // arguments
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = e.Ch.Qos(
@@ -46,7 +80,7 @@ func (e *Endpoint) Start() error {
 		false, // global
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	msgs, err := e.Ch.Consume(
@@ -59,11 +93,9 @@ func (e *Endpoint) Start() error {
 		nil,    // args
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	go e.processMsgs(msgs)
-	return nil
+	return msgs, nil
 }
 func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery) {
 	for {
@@ -79,14 +111,4 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery) {
 		}
 	}
 
-}
-
-func (e *Endpoint) Stop() {
-	log.Printf("Stopping consuming from queue %s", e.Config.QueueName)
-	defer e.Ch.Close()
-
-	e.exit <- true
-	<-e.exitResp
-
-	log.Printf("Stopped consuming from queue %s", e.Config.QueueName)
 }

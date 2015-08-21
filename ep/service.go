@@ -45,23 +45,43 @@ func (s *Service) Start() error {
 	return nil
 }
 func (s *Service) Reload() {
-	log.Printf("Reconfiguring... one day")
+	log.Printf("Reloading Endpoints")
+
+	for _, ep := range s.eps {
+		ch, err := s.conn.Channel()
+		if err != nil {
+			// store these and handle separately?
+			// can't just stop processing though
+			log.Println(err)
+		}
+		err = ep.Reload(ch, ep.Config)
+		if err != nil {
+			// store these and handle separately?
+			// can't just stop processing though
+			log.Println(err)
+		}
+	}
+	log.Printf("Reloaded Endpoints")
 }
 
 func (s *Service) Stop() {
 	log.Printf("Stopping %d Endpoints", len(s.eps))
 	defer s.conn.Close()
 
-	ch := make(chan bool)
+	exitErrs := make(chan error)
 	for _, ep := range s.eps {
 		go func(ep *Endpoint) {
-			ep.Stop()
-			ch <- true
+			exitErrs <- ep.Stop()
 		}(ep)
 	}
 
 	for i := 0; i < len(s.eps); i++ {
-		<-ch
+		err := <-exitErrs
+		if err != nil {
+			// store these and handle separately?
+			// can't just stop processing though
+			log.Println(err)
+		}
 	}
 
 	log.Printf("All Endpoints Stopped")
