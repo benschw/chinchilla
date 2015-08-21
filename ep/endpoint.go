@@ -1,7 +1,9 @@
 package ep
 
 import (
+	"bytes"
 	"log"
+	"net/http"
 
 	"github.com/streadway/amqp"
 )
@@ -29,7 +31,7 @@ func (e *Endpoint) Start() error {
 		return err
 	}
 
-	go e.processMsgs(msgs)
+	go e.processMsgs(msgs, e.Config)
 
 	return nil
 }
@@ -97,7 +99,7 @@ func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
 	}
 	return msgs, nil
 }
-func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery) {
+func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg EndpointConfig) {
 	for {
 		select {
 		case <-e.exit:
@@ -105,9 +107,33 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery) {
 			return
 
 		case d := <-msgs:
-			log.Printf("Received a message on %s: %s", e.Config.QueueName, d.Body)
-			d.Ack(false)
-			log.Printf("Done")
+			log.Printf("Received a message on %s: %s", cfg.QueueName, string(d.Body))
+			url := cfg.ServiceHost + cfg.Uri
+
+			req, err := http.NewRequest(cfg.Method, url, bytes.NewBuffer(d.Body))
+			if err != nil {
+				// @todo Handle me!
+				log.Println(err)
+			}
+			req.Header.Set("Content-Type", d.ContentType)
+
+			r, err := http.DefaultClient.Do(req)
+			if err != nil {
+				// @todo Handle me!
+				log.Println(err)
+			}
+			if r == nil {
+				// @todo Handle me!
+				log.Println("response is nil")
+			} else {
+				if r.StatusCode == 200 {
+					d.Ack(false)
+					log.Println("Done: OK")
+				} else {
+					d.Reject(false)
+					log.Println("Done: FAIL")
+				}
+			}
 		}
 	}
 
