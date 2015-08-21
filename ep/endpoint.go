@@ -23,20 +23,6 @@ type Endpoint struct {
 	exitResp chan bool
 }
 
-func (e *Endpoint) configure(ch *amqp.Channel, cfg EndpointConfig) {
-	e.Ch = ch
-	e.Config = cfg
-}
-
-func (e *Endpoint) Reload(ch *amqp.Channel, cfg EndpointConfig) error {
-	log.Printf("Reloading endpoint %s", e.Config.Name)
-	e.Stop()
-	e.configure(ch, cfg)
-	err := e.Start()
-	log.Printf("Reloaded endpoint %s", e.Config.Name)
-	return err
-}
-
 func (e *Endpoint) Start() error {
 	msgs, err := e.bindToRabbit()
 	if err != nil {
@@ -48,6 +34,15 @@ func (e *Endpoint) Start() error {
 	return nil
 }
 
+func (e *Endpoint) Reload(ch *amqp.Channel, cfg EndpointConfig) error {
+	log.Printf("Reloading endpoint %s", e.Config.Name)
+	e.Stop()
+	e.configure(ch, cfg)
+	err := e.Start()
+	log.Printf("Reloaded endpoint %s", e.Config.Name)
+	return err
+}
+
 func (e *Endpoint) Stop() error {
 	log.Printf("Stopping endpoint %s", e.Config.Name)
 	defer e.Ch.Close()
@@ -57,6 +52,11 @@ func (e *Endpoint) Stop() error {
 
 	log.Printf("Stopped endpoint %s", e.Config.Name)
 	return nil
+}
+
+func (e *Endpoint) configure(ch *amqp.Channel, cfg EndpointConfig) {
+	e.Ch = ch
+	e.Config = cfg
 }
 
 func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/benschw/chinchilla/ep"
+	"github.com/benschw/chinchilla/example/ex"
 	"github.com/streadway/amqp"
 )
 
@@ -17,36 +19,25 @@ func failOnError(err error, msg string) {
 
 func main() {
 	queueName := flag.String("queue", "demo.foo", "supply a queue to publish to")
+	contentType := flag.String("content-type", "text/plain", "set the message content type")
+	body := flag.String("body", "Hello World", "Set the message's body")
 	flag.Parse()
 
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
-	failOnError(err, "Failed to connect to RabbitMQ")
+	if err != nil {
+		panic(err)
+	}
 	defer conn.Close()
 
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
-	defer ch.Close()
-
-	q, err := ch.QueueDeclare(
-		*queueName, // name
-		true,       // durable
-		false,      // delete when unused
-		false,      // exclusive
-		false,      // no-wait
-		nil,        // arguments
-	)
-	failOnError(err, "Failed to declare a queue")
-
-	body := "hello"
-	err = ch.Publish(
-		"",     // exchange
-		q.Name, // routing key
-		false,  // mandatory
-		false,  // immediate
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(body),
-		})
-	log.Printf(" [x] Sent %s", body)
-	failOnError(err, "Failed to publish a message")
+	p := &ex.Publisher{
+		Conn: conn,
+		Config: &ep.EndpointConfig{
+			Name:      "TestEndpoint",
+			QueueName: *queueName,
+		},
+	}
+	err = p.Publish(*body, *contentType)
+	if err != nil {
+		panic(err)
+	}
 }

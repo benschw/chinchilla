@@ -50,14 +50,12 @@ func (s *Service) Reload() {
 	for _, ep := range s.eps {
 		ch, err := s.conn.Channel()
 		if err != nil {
-			// store these and handle separately?
-			// can't just stop processing though
+			// store these and handle separately? can't just stop processing though
 			log.Println(err)
 		}
 		err = ep.Reload(ch, ep.Config)
 		if err != nil {
-			// store these and handle separately?
-			// can't just stop processing though
+			// store these and handle separately? can't just stop processing though
 			log.Println(err)
 		}
 	}
@@ -78,8 +76,7 @@ func (s *Service) Stop() {
 	for i := 0; i < len(s.eps); i++ {
 		err := <-exitErrs
 		if err != nil {
-			// store these and handle separately?
-			// can't just stop processing though
+			// store these and handle separately? can't just stop processing though
 			log.Println(err)
 		}
 	}
