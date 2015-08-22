@@ -20,8 +20,9 @@ func NewEndpoint(ch *amqp.Channel, cfg EndpointConfig, epErrs chan EpError) *End
 		exit:     make(chan bool),
 		exitResp: make(chan bool),
 		errs:     epErrs,
+		Ch:       ch,
+		Config:   cfg,
 	}
-	ep.configure(ch, cfg)
 	return ep
 }
 
@@ -44,28 +45,21 @@ func (e *Endpoint) Start() error {
 	return nil
 }
 
-func (e *Endpoint) Reload(ch *amqp.Channel, cfg EndpointConfig) error {
-	log.Printf("Reloading endpoint %s", e.Config.Name)
-	e.Stop()
-	e.configure(ch, cfg)
-	err := e.Start()
-	log.Printf("Reloaded endpoint %s", e.Config.Name)
-	return err
-}
-
 func (e *Endpoint) Stop() error {
 	log.Printf("Stopping endpoint %s", e.Config.Name)
 
+	// if we detected a bad connection and already closed down the consumer, `e.exit` will be closed
+	defer func() {
+		recover()
+	}()
+
 	e.exit <- true
+	close(e.exit)
+
 	<-e.exitResp
 
 	log.Printf("Stopped endpoint %s", e.Config.Name)
 	return nil
-}
-
-func (e *Endpoint) configure(ch *amqp.Channel, cfg EndpointConfig) {
-	e.Ch = ch
-	e.Config = cfg
 }
 
 func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
@@ -114,10 +108,15 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg EndpointConfig) {
 			e.exitResp <- true
 			return
 
-		case d := <-msgs:
+		case d, ok := <-msgs:
+			if !ok {
+				log.Printf("%s: delivery chan closed", cfg.Name)
+				e.errs <- EpError{Name: cfg.Name, Err: fmt.Errorf("%s delivery chan was closed unexpectedly", cfg.Name)}
+				close(e.exit)
+				return
+			}
+
 			log.Printf("Received a message on %s: %s", cfg.QueueName, string(d.Body))
-			// nil msg start spewing when rabbit dies...
-			//log.Printf("Wha? %+v", d)
 			requeue, err := processMsg(d, cfg)
 			if err != nil {
 				log.Printf("%s: %s", cfg.Name, err)
@@ -126,11 +125,8 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg EndpointConfig) {
 				log.Printf("%s: Message Processed", cfg.Name)
 				d.Ack(false)
 			}
-			//e.errs <- EpError{Name: cfg.Name, Err: err}
-
 		}
 	}
-
 }
 
 func processMsg(d amqp.Delivery, cfg EndpointConfig) (bool, error) {

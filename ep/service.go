@@ -15,7 +15,8 @@ func New(cfg Config) *Service {
 	return &Service{
 		//		Ap:     ap,
 		Config: cfg,
-		eps:    make([]*Endpoint, 0),
+		eps:    make(map[string]*Endpoint),
+		epErrs: make(chan EpError),
 	}
 }
 
@@ -23,7 +24,8 @@ type Service struct {
 	//	Ap     clb.AddressProvider
 	Config Config
 	conn   *amqp.Connection
-	eps    []*Endpoint
+	eps    map[string]*Endpoint
+	epErrs chan EpError
 }
 
 func (s *Service) Run() error {
@@ -33,18 +35,16 @@ func (s *Service) Run() error {
 	}
 	s.conn = conn
 
-	epErrs := make(chan EpError)
-
 	for _, cfg := range s.Config.Endpoints {
 		ch, err := s.conn.Channel()
 		if err != nil {
 			return err
 		}
-		ep := NewEndpoint(ch, cfg, epErrs)
+		ep := NewEndpoint(ch, cfg, s.epErrs)
 		if err := ep.Start(); err != nil {
 			return err
 		}
-		s.eps = append(s.eps, ep)
+		s.eps[cfg.Name] = ep
 	}
 
 	// control flow with signals
@@ -65,8 +65,9 @@ func (s *Service) Run() error {
 			case syscall.SIGHUP:
 				s.Reload()
 			}
-		case err := <-epErrs:
-			log.Printf("Handling screwed up %s Endpoint: %s", err.Name, err.Err)
+		case err := <-s.epErrs:
+			delete(s.eps, err.Name)
+			log.Printf("%s endpoint just errored out: %s", err.Name, err.Err)
 		}
 	}
 	return nil
@@ -74,19 +75,27 @@ func (s *Service) Run() error {
 func (s *Service) Reload() {
 	log.Printf("Reloading Endpoints")
 
-	for _, ep := range s.eps {
+	for name, ep := range s.eps {
 		ch, err := s.conn.Channel()
 		if err != nil {
 			// @todo Handle Me!
 			log.Println(err)
 			continue
 		}
-		err = ep.Reload(ch, ep.Config)
-		if err != nil {
+
+		if err := ep.Stop(); err != nil {
 			// @todo Handle Me!
 			log.Println(err)
 			continue
 		}
+
+		newEp := NewEndpoint(ch, ep.Config, s.epErrs)
+		if err := newEp.Start(); err != nil {
+			// @todo Handle Me!
+			log.Println(err)
+			continue
+		}
+		s.eps[name] = newEp
 	}
 	log.Printf("Reloaded Endpoints")
 }
