@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/benschw/opin-go/ophttp"
 	"github.com/benschw/opin-go/rest"
@@ -46,6 +47,16 @@ func (h *Handler) Bad(res http.ResponseWriter, req *http.Request) {
 	h.addStat("Bad", s)
 	rest.SetInternalServerErrorResponse(res, fmt.Errorf("Setting Error"))
 }
+func (h *Handler) Slow(res http.ResponseWriter, req *http.Request) {
+	bs, _ := ioutil.ReadAll(req.Body)
+	s := string(bs)
+	log.Printf("HTTP: Slow: '%s'", s)
+
+	time.Sleep(10000 * time.Millisecond)
+
+	h.addStat("Slow", s)
+	rest.SetOKResponse(res, nil)
+}
 
 // Run The Server
 func NewServer(bind string) *Server {
@@ -70,6 +81,7 @@ func (s *Server) Start() error {
 	r.HandleFunc("/foo", s.H.Foo).Methods("POST")
 	r.HandleFunc("/bar", s.H.Bar).Methods("POST")
 	r.HandleFunc("/bad", s.H.Bad).Methods("POST")
+	r.HandleFunc("/slow", s.H.Slow).Methods("POST")
 
 	http.Handle("/", r)
 

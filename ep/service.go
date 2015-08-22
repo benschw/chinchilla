@@ -60,6 +60,7 @@ func (s *Service) Run() error {
 			case os.Interrupt:
 				fallthrough
 			case syscall.SIGTERM:
+				s.Stop()
 				return nil
 			case syscall.SIGHUP:
 				s.Reload()

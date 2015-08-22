@@ -116,41 +116,53 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg EndpointConfig) {
 
 		case d := <-msgs:
 			log.Printf("Received a message on %s: %s", cfg.QueueName, string(d.Body))
-			if err := processMsg(d, cfg); err != nil {
-				// @todo Handle me!
-				e.errs <- EpError{Name: cfg.Name, Err: err}
-				d.Reject(false)
-				log.Println("Done: FAIL")
+			// nil msg start spewing when rabbit dies...
+			//log.Printf("Wha? %+v", d)
+			requeue, err := processMsg(d, cfg)
+			if err != nil {
+				log.Printf("%s: %s", cfg.Name, err)
+				d.Nack(false, requeue)
 			} else {
+				log.Printf("%s: Message Processed", cfg.Name)
 				d.Ack(false)
-				log.Println("Done: OK")
 			}
+			//e.errs <- EpError{Name: cfg.Name, Err: err}
+
 		}
 	}
 
 }
 
-func processMsg(d amqp.Delivery, cfg EndpointConfig) error {
+func processMsg(d amqp.Delivery, cfg EndpointConfig) (bool, error) {
 	url := cfg.ServiceHost + cfg.Uri
 
 	req, err := http.NewRequest(cfg.Method, url, bytes.NewBuffer(d.Body))
 	if err != nil {
-		return err
+		// nack & requeue if we can't build a request
+		return true, err
 	}
 	req.Header.Set("Content-Type", d.ContentType)
 
 	r, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
-	}
-	if r == nil {
-		return fmt.Errorf("Response from '%s: %s' was nil", cfg.Method, url)
-	}
-	if r.StatusCode == 200 {
-		log.Println("Done: OK")
-		return nil
-	} else {
-		return fmt.Errorf("Code from '%s: %s' was '%d'", cfg.Method, url, r.StatusCode)
+		// nack & requeue if request errors out
+		return true, err
 	}
 
+	if r == nil {
+		// nack & requeue if response is nil
+		return true, fmt.Errorf("Response from '%s: %s' was nil", cfg.Method, url)
+	}
+
+	if !okStatus(r.StatusCode) {
+		// nack & don't requeue if endpoint responds with an error
+		return false, fmt.Errorf("Code from '%s: %s' was '%d'", cfg.Method, url, r.StatusCode)
+	}
+
+	// ack
+	return false, nil
+}
+
+func okStatus(code int) bool {
+	return code == 200
 }

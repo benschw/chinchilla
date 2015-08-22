@@ -1,16 +1,23 @@
 
 endpoints:
   -
-    name: Bar
-    queuename: demo.bar
-    servicehost: http://localhost:8080
-    uri: /bar
-    method: POST
-  -
     name: Foo
     queuename: demo.foo
     servicehost: http://localhost:8080
     uri: /foo
+    method: POST
+  -
+    name: Slow 
+    queuename: demo.slow
+    servicehost: http://localhost:8080
+    uri: /slow
+    method: POST
+disabled:
+  -
+    name: Bar
+    queuename: demo.bar
+    servicehost: http://localhost:8080
+    uri: /bar
     method: POST
   -
     name: Bad 
