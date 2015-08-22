@@ -2,17 +2,24 @@ package ep
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/streadway/amqp"
 )
 
-func NewEndpoint(ch *amqp.Channel, cfg EndpointConfig) *Endpoint {
+type EpError struct {
+	Name string
+	Err  error
+}
+
+func NewEndpoint(ch *amqp.Channel, cfg EndpointConfig, epErrs chan EpError) *Endpoint {
 
 	ep := &Endpoint{
 		exit:     make(chan bool),
 		exitResp: make(chan bool),
+		errs:     epErrs,
 	}
 	ep.configure(ch, cfg)
 	return ep
@@ -23,6 +30,7 @@ type Endpoint struct {
 	Config   EndpointConfig
 	exit     chan bool
 	exitResp chan bool
+	errs     chan EpError
 }
 
 func (e *Endpoint) Start() error {
@@ -108,33 +116,41 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg EndpointConfig) {
 
 		case d := <-msgs:
 			log.Printf("Received a message on %s: %s", cfg.QueueName, string(d.Body))
-			url := cfg.ServiceHost + cfg.Uri
-
-			req, err := http.NewRequest(cfg.Method, url, bytes.NewBuffer(d.Body))
-			if err != nil {
+			if err := processMsg(d, cfg); err != nil {
 				// @todo Handle me!
-				log.Println(err)
-			}
-			req.Header.Set("Content-Type", d.ContentType)
-
-			r, err := http.DefaultClient.Do(req)
-			if err != nil {
-				// @todo Handle me!
-				log.Println(err)
-			}
-			if r == nil {
-				// @todo Handle me!
-				log.Println("response is nil")
+				e.errs <- EpError{Name: cfg.Name, Err: err}
+				d.Reject(false)
+				log.Println("Done: FAIL")
 			} else {
-				if r.StatusCode == 200 {
-					d.Ack(false)
-					log.Println("Done: OK")
-				} else {
-					d.Reject(false)
-					log.Println("Done: FAIL")
-				}
+				d.Ack(false)
+				log.Println("Done: OK")
 			}
 		}
+	}
+
+}
+
+func processMsg(d amqp.Delivery, cfg EndpointConfig) error {
+	url := cfg.ServiceHost + cfg.Uri
+
+	req, err := http.NewRequest(cfg.Method, url, bytes.NewBuffer(d.Body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", d.ContentType)
+
+	r, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if r == nil {
+		return fmt.Errorf("Response from '%s: %s' was nil", cfg.Method, url)
+	}
+	if r.StatusCode == 200 {
+		log.Println("Done: OK")
+		return nil
+	} else {
+		return fmt.Errorf("Code from '%s: %s' was '%d'", cfg.Method, url, r.StatusCode)
 	}
 
 }

@@ -5,8 +5,6 @@ import (
 	"log"
 	"log/syslog"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/benschw/chinchilla/ep"
 	"github.com/benschw/opin-go/config"
@@ -35,27 +33,9 @@ func main() {
 	//}}
 	//svc := ep.New(ap, cfg)
 	svc := ep.New(cfg)
-	if err := svc.Start(); err != nil {
+	if err := svc.Run(); err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
-	defer svc.Stop()
 
-	// impl control flow with signals
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt)
-	signal.Notify(sigCh, syscall.SIGTERM)
-	signal.Notify(sigCh, syscall.SIGHUP)
-
-	for {
-		sig := <-sigCh
-		switch sig {
-		case os.Interrupt:
-			fallthrough
-		case syscall.SIGTERM:
-			return
-		case syscall.SIGHUP:
-			svc.Reload()
-		}
-	}
 }

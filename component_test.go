@@ -64,7 +64,7 @@ func testPublish(t *testing.T) {
 	eps, server, p, _ := GetServices()
 	go server.Start()
 
-	eps.Start()
+	go eps.Run()
 
 	body := "Hello World"
 
@@ -85,7 +85,7 @@ func TestPublishLotsAndLots(t *testing.T) {
 
 	go server.Start()
 
-	eps.Start()
+	go eps.Run()
 
 	body := "Hello World"
 

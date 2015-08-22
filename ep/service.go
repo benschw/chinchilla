@@ -2,6 +2,9 @@ package ep
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/streadway/amqp"
 )
@@ -23,25 +26,48 @@ type Service struct {
 	eps    []*Endpoint
 }
 
-func (s *Service) Start() error {
+func (s *Service) Run() error {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		return err
 	}
 	s.conn = conn
 
+	epErrs := make(chan EpError)
+
 	for _, cfg := range s.Config.Endpoints {
 		ch, err := s.conn.Channel()
 		if err != nil {
 			return err
 		}
-		ep := NewEndpoint(ch, cfg)
+		ep := NewEndpoint(ch, cfg, epErrs)
 		if err := ep.Start(); err != nil {
 			return err
 		}
 		s.eps = append(s.eps, ep)
 	}
 
+	// control flow with signals
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt)
+	signal.Notify(sigCh, syscall.SIGTERM)
+	signal.Notify(sigCh, syscall.SIGHUP)
+
+	for {
+		select {
+		case sig := <-sigCh:
+			switch sig {
+			case os.Interrupt:
+				fallthrough
+			case syscall.SIGTERM:
+				return nil
+			case syscall.SIGHUP:
+				s.Reload()
+			}
+		case err := <-epErrs:
+			log.Printf("Handling screwed up %s Endpoint: %s", err.Name, err.Err)
+		}
+	}
 	return nil
 }
 func (s *Service) Reload() {
@@ -50,13 +76,15 @@ func (s *Service) Reload() {
 	for _, ep := range s.eps {
 		ch, err := s.conn.Channel()
 		if err != nil {
-			// store these and handle separately? can't just stop processing though
+			// @todo Handle Me!
 			log.Println(err)
+			continue
 		}
 		err = ep.Reload(ch, ep.Config)
 		if err != nil {
-			// store these and handle separately? can't just stop processing though
+			// @todo Handle Me!
 			log.Println(err)
+			continue
 		}
 	}
 	log.Printf("Reloaded Endpoints")
