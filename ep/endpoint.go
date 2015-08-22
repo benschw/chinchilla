@@ -47,7 +47,6 @@ func (e *Endpoint) Reload(ch *amqp.Channel, cfg EndpointConfig) error {
 
 func (e *Endpoint) Stop() error {
 	log.Printf("Stopping endpoint %s", e.Config.Name)
-	defer e.Ch.Close()
 
 	e.exit <- true
 	<-e.exitResp
@@ -100,6 +99,7 @@ func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
 	return msgs, nil
 }
 func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg EndpointConfig) {
+	defer e.Ch.Close()
 	for {
 		select {
 		case <-e.exit:

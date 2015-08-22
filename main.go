@@ -29,10 +29,11 @@ func main() {
 		os.Exit(1)
 	}
 	//ap := clb.NewAddressProvider("rabbit.service.consul")
-	//	ap := &clb.StaticAddressProvider{Address: dns.Address{
-	//		Address: "localhost",
-	//		Port:    5672,
-	//	}}
+	//ap := &clb.StaticAddressProvider{Address: dns.Address{
+	//	Address: "localhost",
+	//	Port:    5672,
+	//}}
+	//svc := ep.New(ap, cfg)
 	svc := ep.New(cfg)
 	if err := svc.Start(); err != nil {
 		log.Println(err)

@@ -11,45 +11,65 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func FooHandler(res http.ResponseWriter, req *http.Request) {
+type Handler struct {
+	Stats map[string][]string
+}
+
+func (h *Handler) addStat(key string, body string) {
+	if h.Stats[key] == nil {
+		h.Stats[key] = make([]string, 0)
+	}
+	h.Stats[key] = append(h.Stats[key], body)
+}
+
+func (h *Handler) Foo(res http.ResponseWriter, req *http.Request) {
 	bs, _ := ioutil.ReadAll(req.Body)
 	s := string(bs)
-
 	log.Printf("HTTP: Foo: '%s'", s)
+
+	h.addStat("Foo", s)
 	rest.SetOKResponse(res, nil)
 }
-func BarHandler(res http.ResponseWriter, req *http.Request) {
+func (h *Handler) Bar(res http.ResponseWriter, req *http.Request) {
 	bs, _ := ioutil.ReadAll(req.Body)
 	s := string(bs)
-
 	log.Printf("HTTP: Bar: '%s'", s)
+
+	h.addStat("Bar", s)
 	rest.SetOKResponse(res, nil)
 }
-func BadHandler(res http.ResponseWriter, req *http.Request) {
+func (h *Handler) Bad(res http.ResponseWriter, req *http.Request) {
 	bs, _ := ioutil.ReadAll(req.Body)
 	s := string(bs)
-
 	log.Printf("HTTP: Bad: '%s'", s)
+
+	h.addStat("Bad", s)
 	rest.SetInternalServerErrorResponse(res, fmt.Errorf("Setting Error"))
 }
 
 // Run The Server
 func NewServer(bind string) *Server {
 	server := ophttp.NewServer(bind)
-	return &Server{S: server}
+	stats := make(map[string][]string)
+	return &Server{
+		S: server,
+		H: &Handler{Stats: stats},
+	}
 }
 
 type Server struct {
 	S *ophttp.Server
+	H *Handler
 }
 
 func (s *Server) Start() error {
 	log.Println("HTTP: Starting Demo Http Server")
+
 	r := mux.NewRouter()
 
-	r.HandleFunc("/foo", FooHandler).Methods("POST")
-	r.HandleFunc("/bar", BarHandler).Methods("POST")
-	r.HandleFunc("/bad", BadHandler).Methods("POST")
+	r.HandleFunc("/foo", s.H.Foo).Methods("POST")
+	r.HandleFunc("/bar", s.H.Bar).Methods("POST")
+	r.HandleFunc("/bad", s.H.Bad).Methods("POST")
 
 	http.Handle("/", r)
 

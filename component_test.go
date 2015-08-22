@@ -12,11 +12,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func GetPublisher(cfg *ep.EndpointConfig) *ex.Publisher {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+var conn *amqp.Connection
+
+func init() {
+	c, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		panic(err)
 	}
+	conn = c
+}
+func GetPublisher(cfg *ep.EndpointConfig) *ex.Publisher {
 	p := &ex.Publisher{
 		Conn:   conn,
 		Config: cfg,
@@ -24,7 +29,7 @@ func GetPublisher(cfg *ep.EndpointConfig) *ex.Publisher {
 	return p
 }
 
-func GetServices() (*ep.Service, *ex.Server, *ex.Publisher) {
+func GetServices() (*ep.Service, *ex.Server, *ex.Publisher, *ex.Publisher) {
 	port := uint16(rando.Port())
 
 	server := ex.NewServer(fmt.Sprintf(":%d", port))
@@ -36,29 +41,67 @@ func GetServices() (*ep.Service, *ex.Server, *ex.Publisher) {
 		Uri:         "/foo",
 		Method:      "POST",
 	}
+	epCfg2 := ep.EndpointConfig{
+		Name:        "Bar",
+		QueueName:   "test.bar",
+		ServiceHost: fmt.Sprintf("http://localhost:%d", port),
+		Uri:         "/bar",
+		Method:      "POST",
+	}
 	cfg := ep.Config{Endpoints: []ep.EndpointConfig{
-		epCfg,
+		epCfg, epCfg2,
 	}}
 
 	p := GetPublisher(&epCfg)
+	p2 := GetPublisher(&epCfg2)
 
 	epSvc := ep.New(cfg)
-	return epSvc, server, p
+	return epSvc, server, p, p2
 }
 
-func TestPublish(t *testing.T) {
-	// Setup
-	eps, server, p := GetServices()
+func testPublish(t *testing.T) {
+	// setup
+	eps, server, p, _ := GetServices()
 	go server.Start()
-	defer server.Stop()
 
 	eps.Start()
-	defer eps.Stop()
 
-	// When
+	body := "Hello World"
 
-	err := p.Publish("Hello", "text/plain")
+	// when
+	err := p.Publish(body, "text/plain")
 
-	// Then
+	server.Stop()
+	eps.Stop()
+
+	// then
 	assert.Nil(t, err)
+	assert.Equal(t, 1, len(server.H.Stats["Foo"]), "wrong number of stats")
+	assert.Equal(t, body, server.H.Stats["Foo"][0], "body not what expected")
+}
+func TestPublishLotsAndLots(t *testing.T) {
+	// setup
+	eps, server, p, p2 := GetServices()
+
+	go server.Start()
+
+	eps.Start()
+
+	body := "Hello World"
+
+	// when
+	for i := 0; i < 500; i++ {
+		err := p.Publish(body, "text/plain")
+		assert.Nil(t, err)
+
+		err = p2.Publish(body, "text/plain")
+		assert.Nil(t, err)
+
+	}
+	server.Stop()
+	eps.Stop()
+
+	// then
+	assert.Equal(t, 500, len(server.H.Stats["Foo"]), "wrong number of stats")
+	assert.Equal(t, 500, len(server.H.Stats["Bar"]), "wrong number of stats")
 }
