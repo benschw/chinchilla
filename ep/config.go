@@ -16,6 +16,6 @@ type EndpointConfig struct {
 }
 
 func (c *EndpointConfig) Equals(cfg EndpointConfig) bool {
+	// @todo build this our more efficiently/explicitely
 	return reflect.DeepEqual(*c, cfg)
-
 }

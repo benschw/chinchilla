@@ -11,7 +11,6 @@ import (
 )
 
 func NewManager(cfgMgr *ConfigManager) *Manager {
-
 	return &Manager{
 		eps:    make(map[string]*Endpoint),
 		epErrs: make(chan EpError),
@@ -60,68 +59,27 @@ func (m *Manager) Run() error {
 		case cfgU := <-m.cfgMgr.Updates:
 			switch cfgU.T {
 			case ConfigUpdateUpdate:
-				if err := m.startEndpoint(cfgU); err != nil {
+				if err := m.startEndpoint(cfgU.Config); err != nil {
 					log.Printf("%s: problem starting/reloading: %s", cfgU.Config.Name, err)
 				}
 			case ConfigUpdateDelete:
-				if err := m.stopEndpoint(cfgU); err != nil {
-					log.Printf("%s: problem stopping: %s", cfgU.Config.Name, err)
+				if err := m.stopEndpoint(cfgU.Name); err != nil {
+					log.Printf("%s: problem stopping: %s", cfgU.Name, err)
 				}
 			}
 		}
 	}
 	return nil
 }
-func (m *Manager) startEndpoint(cfgU ConfigUpdate) error {
-	if old, ok := m.eps[cfgU.Config.Name]; ok {
-		old.Stop()
-		delete(m.eps, cfgU.Config.Name)
-	}
-	ch, err := m.conn.Channel()
-	if err != nil {
-		return err
-	}
-	ep := New(ch, cfgU.Config, m.epErrs)
-	if err := ep.Start(); err != nil {
-		return err
-	}
-	m.eps[cfgU.Config.Name] = ep
-	return nil
-}
-func (m *Manager) stopEndpoint(cfgU ConfigUpdate) error {
-	old, ok := m.eps[cfgU.Name]
-	if !ok {
-		return fmt.Errorf("%s not present, can't stop", cfgU.Name)
-	}
-	old.Stop()
-	delete(m.eps, cfgU.Config.Name)
-	return nil
-}
 
 func (m *Manager) Reload() {
 	log.Printf("Reloading Endpoints")
 
-	for name, ep := range m.eps {
-		ch, err := m.conn.Channel()
-		if err != nil {
-			// @todo Handle Me!
+	for _, ep := range m.eps {
+		if err := m.startEndpoint(ep.Config); err != nil {
 			log.Println(err)
 			continue
 		}
-
-		if err := ep.Stop(); err != nil {
-			// @todo Handle Me!
-			log.Println(err)
-			continue
-		}
-
-		newEp := New(ch, ep.Config, m.epErrs)
-		if err := newEp.Start(); err != nil {
-			// @todo Handle Me!
-			log.Println(err)
-			continue
-		}
-		m.eps[name] = newEp
 	}
 	log.Printf("Reloaded Endpoints")
 }
@@ -137,7 +95,8 @@ func (m *Manager) Stop() {
 	exitErrs := make(chan error)
 	for _, ep := range m.eps {
 		go func(ep *Endpoint) {
-			exitErrs <- ep.Stop()
+			ep.Stop()
+			exitErrs <- nil
 		}(ep)
 	}
 
@@ -150,4 +109,29 @@ func (m *Manager) Stop() {
 	}
 
 	log.Printf("All Endpoints Stopped")
+}
+func (m *Manager) startEndpoint(cfg EndpointConfig) error {
+	if old, ok := m.eps[cfg.Name]; ok {
+		old.Stop()
+		delete(m.eps, cfg.Name)
+	}
+	ch, err := m.conn.Channel()
+	if err != nil {
+		return err
+	}
+	ep := New(ch, cfg, m.epErrs)
+	if err := ep.Start(); err != nil {
+		return err
+	}
+	m.eps[cfg.Name] = ep
+	return nil
+}
+func (m *Manager) stopEndpoint(name string) error {
+	old, ok := m.eps[name]
+	if !ok {
+		return fmt.Errorf("%s not present, can't stop", name)
+	}
+	old.Stop()
+	delete(m.eps, name)
+	return nil
 }

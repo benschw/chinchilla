@@ -45,7 +45,7 @@ func (e *Endpoint) Start() error {
 	return nil
 }
 
-func (e *Endpoint) Stop() error {
+func (e *Endpoint) Stop() {
 	log.Printf("Stopping endpoint %s", e.Config.Name)
 
 	// if we detected a bad connection and already closed down the consumer, `e.exit` will be closed
@@ -59,7 +59,6 @@ func (e *Endpoint) Stop() error {
 	<-e.exitResp
 
 	log.Printf("Stopped endpoint %s", e.Config.Name)
-	return nil
 }
 
 func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
