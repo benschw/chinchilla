@@ -9,10 +9,10 @@ import (
 	"github.com/streadway/amqp"
 )
 
-//func New(ap clb.AddressProvider, cfg Config) *Service {
-func New(cfg Config) *Service {
+//func New(ap clb.AddressProvider, cfg Config) *Manager {
+func NewManager(cfg Config) *Manager {
 
-	return &Service{
+	return &Manager{
 		//		Ap:     ap,
 		Config: cfg,
 		eps:    make(map[string]*Endpoint),
@@ -20,7 +20,7 @@ func New(cfg Config) *Service {
 	}
 }
 
-type Service struct {
+type Manager struct {
 	//	Ap     clb.AddressProvider
 	Config Config
 	conn   *amqp.Connection
@@ -28,23 +28,23 @@ type Service struct {
 	epErrs chan EpError
 }
 
-func (s *Service) Run() error {
+func (m *Manager) Run() error {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		return err
 	}
-	s.conn = conn
+	m.conn = conn
 
-	for _, cfg := range s.Config.Endpoints {
-		ch, err := s.conn.Channel()
+	for _, cfg := range m.Config.Endpoints {
+		ch, err := m.conn.Channel()
 		if err != nil {
 			return err
 		}
-		ep := NewEndpoint(ch, cfg, s.epErrs)
+		ep := New(ch, cfg, m.epErrs)
 		if err := ep.Start(); err != nil {
 			return err
 		}
-		s.eps[cfg.Name] = ep
+		m.eps[cfg.Name] = ep
 	}
 
 	// control flow with signals
@@ -60,23 +60,23 @@ func (s *Service) Run() error {
 			case os.Interrupt:
 				fallthrough
 			case syscall.SIGTERM:
-				s.Stop()
+				m.Stop()
 				return nil
 			case syscall.SIGHUP:
-				s.Reload()
+				m.Reload()
 			}
-		case err := <-s.epErrs:
-			delete(s.eps, err.Name)
+		case err := <-m.epErrs:
+			delete(m.eps, err.Name)
 			log.Printf("%s endpoint just errored out: %s", err.Name, err.Err)
 		}
 	}
 	return nil
 }
-func (s *Service) Reload() {
+func (m *Manager) Reload() {
 	log.Printf("Reloading Endpoints")
 
-	for name, ep := range s.eps {
-		ch, err := s.conn.Channel()
+	for name, ep := range m.eps {
+		ch, err := m.conn.Channel()
 		if err != nil {
 			// @todo Handle Me!
 			log.Println(err)
@@ -89,29 +89,29 @@ func (s *Service) Reload() {
 			continue
 		}
 
-		newEp := NewEndpoint(ch, ep.Config, s.epErrs)
+		newEp := New(ch, ep.Config, m.epErrs)
 		if err := newEp.Start(); err != nil {
 			// @todo Handle Me!
 			log.Println(err)
 			continue
 		}
-		s.eps[name] = newEp
+		m.eps[name] = newEp
 	}
 	log.Printf("Reloaded Endpoints")
 }
 
-func (s *Service) Stop() {
-	log.Printf("Stopping %d Endpoints", len(s.eps))
-	defer s.conn.Close()
+func (m *Manager) Stop() {
+	log.Printf("Stopping %d Endpoints", len(m.eps))
+	defer m.conn.Close()
 
 	exitErrs := make(chan error)
-	for _, ep := range s.eps {
+	for _, ep := range m.eps {
 		go func(ep *Endpoint) {
 			exitErrs <- ep.Stop()
 		}(ep)
 	}
 
-	for i := 0; i < len(s.eps); i++ {
+	for i := 0; i < len(m.eps); i++ {
 		err := <-exitErrs
 		if err != nil {
 			// store these and handle separately? can't just stop processing though

@@ -14,7 +14,7 @@ type EpError struct {
 	Err  error
 }
 
-func NewEndpoint(ch *amqp.Channel, cfg EndpointConfig, epErrs chan EpError) *Endpoint {
+func New(ch *amqp.Channel, cfg EndpointConfig, epErrs chan EpError) *Endpoint {
 
 	ep := &Endpoint{
 		exit:     make(chan bool),

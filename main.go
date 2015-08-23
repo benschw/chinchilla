@@ -32,7 +32,7 @@ func main() {
 	//	Port:    5672,
 	//}}
 	//svc := ep.New(ap, cfg)
-	svc := ep.New(cfg)
+	svc := ep.NewManager(cfg)
 	if err := svc.Run(); err != nil {
 		log.Println(err)
 		os.Exit(1)
