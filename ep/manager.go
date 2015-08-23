@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/streadway/amqp"
@@ -75,38 +76,34 @@ func (m *Manager) Run() error {
 func (m *Manager) Reload() {
 	log.Printf("Reloading Endpoints")
 
+	var done sync.WaitGroup
 	for _, ep := range m.eps {
-		if err := m.startEndpoint(ep.Config); err != nil {
-			log.Println(err)
-			continue
-		}
+		done.Add(1)
+		go func(ep *Endpoint) {
+			if err := m.startEndpoint(ep.Config); err != nil {
+				log.Println(err)
+			}
+			done.Done()
+		}(ep)
 	}
+	done.Wait()
+
 	log.Printf("Reloaded Endpoints")
 }
 
 func (m *Manager) Stop() {
 	log.Printf("Stopping %d Endpoints", len(m.eps))
 	defer m.conn.Close()
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("Recovered in f", r)
-		}
-	}()
-	exitErrs := make(chan error)
+
+	var done sync.WaitGroup
 	for _, ep := range m.eps {
+		done.Add(1)
 		go func(ep *Endpoint) {
 			ep.Stop()
-			exitErrs <- nil
+			done.Done()
 		}(ep)
 	}
-
-	for i := 0; i < len(m.eps); i++ {
-		err := <-exitErrs
-		if err != nil {
-			// store these and handle separately? can't just stop processing though
-			log.Println(err)
-		}
-	}
+	done.Wait()
 
 	log.Printf("All Endpoints Stopped")
 }
