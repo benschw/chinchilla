@@ -1,6 +1,7 @@
 package ep
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -9,11 +10,9 @@ import (
 	"github.com/streadway/amqp"
 )
 
-//func New(ap clb.AddressProvider, cfg Config) *Manager {
 func NewManager(cfgMgr *ConfigManager) *Manager {
 
 	return &Manager{
-		//		Ap:     ap,
 		eps:    make(map[string]*Endpoint),
 		epErrs: make(chan EpError),
 		cfgMgr: cfgMgr,
@@ -21,7 +20,6 @@ func NewManager(cfgMgr *ConfigManager) *Manager {
 }
 
 type Manager struct {
-	//	Ap     clb.AddressProvider
 	conn   *amqp.Connection
 	eps    map[string]*Endpoint
 	epErrs chan EpError
@@ -37,6 +35,7 @@ func (m *Manager) Run() error {
 	}
 	m.conn = conn
 
+	log.Println("starting up")
 	// control flow with signals
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
@@ -61,27 +60,44 @@ func (m *Manager) Run() error {
 		case cfgU := <-m.cfgMgr.Updates:
 			switch cfgU.T {
 			case ConfigUpdateUpdate:
-				ch, err := m.conn.Channel()
-				if err != nil {
-					return err
+				if err := m.startEndpoint(cfgU); err != nil {
+					log.Printf("%s: problem starting/reloading: %s", cfgU.Config.Name, err)
 				}
-				ep := New(ch, cfgU.Config, m.epErrs)
-				if err := ep.Start(); err != nil {
-					return err
-				}
-				m.eps[cfgU.Config.Name] = ep
 			case ConfigUpdateDelete:
-				if m.eps[cfgU.Config.Name] == nil {
-					log.Printf("%s not present, can't stop", cfgU.Config.Name)
+				if err := m.stopEndpoint(cfgU); err != nil {
+					log.Printf("%s: problem stopping: %s", cfgU.Config.Name, err)
 				}
-				m.eps[cfgU.Config.Name].Stop()
-				delete(m.eps, cfgU.Config.Name)
-
 			}
 		}
 	}
 	return nil
 }
+func (m *Manager) startEndpoint(cfgU ConfigUpdate) error {
+	if old, ok := m.eps[cfgU.Config.Name]; ok {
+		old.Stop()
+		delete(m.eps, cfgU.Config.Name)
+	}
+	ch, err := m.conn.Channel()
+	if err != nil {
+		return err
+	}
+	ep := New(ch, cfgU.Config, m.epErrs)
+	if err := ep.Start(); err != nil {
+		return err
+	}
+	m.eps[cfgU.Config.Name] = ep
+	return nil
+}
+func (m *Manager) stopEndpoint(cfgU ConfigUpdate) error {
+	old, ok := m.eps[cfgU.Name]
+	if !ok {
+		return fmt.Errorf("%s not present, can't stop", cfgU.Name)
+	}
+	old.Stop()
+	delete(m.eps, cfgU.Config.Name)
+	return nil
+}
+
 func (m *Manager) Reload() {
 	log.Printf("Reloading Endpoints")
 
@@ -113,7 +129,11 @@ func (m *Manager) Reload() {
 func (m *Manager) Stop() {
 	log.Printf("Stopping %d Endpoints", len(m.eps))
 	defer m.conn.Close()
-
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in f", r)
+		}
+	}()
 	exitErrs := make(chan error)
 	for _, ep := range m.eps {
 		go func(ep *Endpoint) {

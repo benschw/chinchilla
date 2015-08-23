@@ -48,24 +48,27 @@ func GetServices() (*ep.Manager, *ex.Server, *ex.Publisher, *ex.Publisher) {
 		Uri:         "/bar",
 		Method:      "POST",
 	}
+	cfg := ep.Config{
+		Endpoints: []ep.EndpointConfig{epCfg, epCfg2},
+	}
 
 	p := GetPublisher(&epCfg)
 	p2 := GetPublisher(&epCfg2)
 
-	cfgUpdates := make(chan ep.ConfigUpdate)
-	cfgUpdates <- ep.ConfigUpdate{T: ep.ConfigUpdateUpdate, Config: epCfg}
-	cfgUpdates <- ep.ConfigUpdate{T: ep.ConfigUpdateUpdate, Config: epCfg2}
+	cfgMgr := ep.NewConfigManager([]ep.ConfigProvider{
+		&ep.StaticConfigProvider{Config: cfg},
+	})
 
-	epSvc := ep.NewManager(cfgUpdates)
-	return epSvc, server, p, p2
+	mgr := ep.NewManager(cfgMgr)
+	return mgr, server, p, p2
 }
 
 func testPublish(t *testing.T) {
 	// setup
-	eps, server, p, _ := GetServices()
+	mgr, server, p, _ := GetServices()
 	go server.Start()
 
-	go eps.Run()
+	go mgr.Run()
 
 	body := "Hello World"
 
@@ -73,20 +76,23 @@ func testPublish(t *testing.T) {
 	err := p.Publish(body, "text/plain")
 
 	server.Stop()
-	eps.Stop()
+	mgr.Stop()
 
 	// then
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(server.H.Stats["Foo"]), "wrong number of stats")
-	assert.Equal(t, body, server.H.Stats["Foo"][0], "body not what expected")
+	statLen := len(server.H.Stats["Foo"])
+	assert.Equal(t, 1, statLen, "wrong number of stats")
+	if statLen > 0 {
+		assert.Equal(t, body, server.H.Stats["Foo"][0], "body not what expected")
+	}
 }
 func TestPublishLotsAndLots(t *testing.T) {
 	// setup
-	eps, server, p, p2 := GetServices()
+	mgr, server, p, p2 := GetServices()
 
 	go server.Start()
 
-	go eps.Run()
+	go mgr.Run()
 
 	body := "Hello World"
 
@@ -100,7 +106,7 @@ func TestPublishLotsAndLots(t *testing.T) {
 
 	}
 	server.Stop()
-	eps.Stop()
+	mgr.Stop()
 
 	// then
 	assert.Equal(t, 500, len(server.H.Stats["Foo"]), "wrong number of stats")
