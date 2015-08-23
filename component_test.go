@@ -48,14 +48,15 @@ func GetServices() (*ep.Manager, *ex.Server, *ex.Publisher, *ex.Publisher) {
 		Uri:         "/bar",
 		Method:      "POST",
 	}
-	cfg := ep.Config{Endpoints: []ep.EndpointConfig{
-		epCfg, epCfg2,
-	}}
 
 	p := GetPublisher(&epCfg)
 	p2 := GetPublisher(&epCfg2)
 
-	epSvc := ep.NewManager(cfg)
+	cfgUpdates := make(chan ep.ConfigUpdate)
+	cfgUpdates <- ep.ConfigUpdate{T: ep.ConfigUpdateUpdate, Config: epCfg}
+	cfgUpdates <- ep.ConfigUpdate{T: ep.ConfigUpdateUpdate, Config: epCfg2}
+
+	epSvc := ep.NewManager(cfgUpdates)
 	return epSvc, server, p, p2
 }
 

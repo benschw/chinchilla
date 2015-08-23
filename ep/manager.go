@@ -10,42 +10,32 @@ import (
 )
 
 //func New(ap clb.AddressProvider, cfg Config) *Manager {
-func NewManager(cfg Config) *Manager {
+func NewManager(cfgMgr *ConfigManager) *Manager {
 
 	return &Manager{
 		//		Ap:     ap,
-		Config: cfg,
 		eps:    make(map[string]*Endpoint),
 		epErrs: make(chan EpError),
+		cfgMgr: cfgMgr,
 	}
 }
 
 type Manager struct {
 	//	Ap     clb.AddressProvider
-	Config Config
 	conn   *amqp.Connection
 	eps    map[string]*Endpoint
 	epErrs chan EpError
+	cfgMgr *ConfigManager
 }
 
 func (m *Manager) Run() error {
+	go m.cfgMgr.Manage(5)
+
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		return err
 	}
 	m.conn = conn
-
-	for _, cfg := range m.Config.Endpoints {
-		ch, err := m.conn.Channel()
-		if err != nil {
-			return err
-		}
-		ep := New(ch, cfg, m.epErrs)
-		if err := ep.Start(); err != nil {
-			return err
-		}
-		m.eps[cfg.Name] = ep
-	}
 
 	// control flow with signals
 	sigCh := make(chan os.Signal, 1)
@@ -68,6 +58,26 @@ func (m *Manager) Run() error {
 		case err := <-m.epErrs:
 			delete(m.eps, err.Name)
 			log.Printf("%s endpoint just errored out: %s", err.Name, err.Err)
+		case cfgU := <-m.cfgMgr.Updates:
+			switch cfgU.T {
+			case ConfigUpdateUpdate:
+				ch, err := m.conn.Channel()
+				if err != nil {
+					return err
+				}
+				ep := New(ch, cfgU.Config, m.epErrs)
+				if err := ep.Start(); err != nil {
+					return err
+				}
+				m.eps[cfgU.Config.Name] = ep
+			case ConfigUpdateDelete:
+				if m.eps[cfgU.Config.Name] == nil {
+					log.Printf("%s not present, can't stop", cfgU.Config.Name)
+				}
+				m.eps[cfgU.Config.Name].Stop()
+				delete(m.eps, cfgU.Config.Name)
+
+			}
 		}
 	}
 	return nil

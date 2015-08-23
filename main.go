@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/benschw/chinchilla/ep"
-	"github.com/benschw/opin-go/config"
 )
 
 func main() {
@@ -20,19 +19,24 @@ func main() {
 			log.SetOutput(logwriter)
 		}
 	}
-	var cfg ep.Config
+	//	var cfg ep.Config
 
-	if err := config.Bind("./config.yaml", &cfg); err != nil {
-		log.Println(err)
-		os.Exit(1)
-	}
+	//	if err := config.Bind("./config.yaml", &cfg); err != nil {
+	//		log.Println(err)
+	//		os.Exit(1)
+	//	}
 	//ap := clb.NewAddressProvider("rabbit.service.consul")
 	//ap := &clb.StaticAddressProvider{Address: dns.Address{
 	//	Address: "localhost",
 	//	Port:    5672,
 	//}}
 	//svc := ep.New(ap, cfg)
-	svc := ep.NewManager(cfg)
+
+	cfgMgr := ep.NewConfigManager([]ep.ConfigProvider{
+		&ep.YamlConfigProvider{Path: "./config.yaml"},
+	})
+
+	svc := ep.NewManager(cfgMgr)
 	if err := svc.Run(); err != nil {
 		log.Println(err)
 		os.Exit(1)
