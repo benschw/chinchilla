@@ -110,7 +110,7 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg EndpointConfig) {
 		case d, ok := <-msgs:
 			if !ok {
 				log.Printf("%s: delivery chan closed", cfg.Name)
-				e.errs <- EpError{Name: cfg.Name, Err: fmt.Errorf("%s delivery chan was closed unexpectedly", cfg.Name)}
+				//e.errs <- EpError{Name: cfg.Name, Err: fmt.Errorf("%s delivery chan was closed unexpectedly", cfg.Name)}
 				close(e.exit)
 				return
 			}
