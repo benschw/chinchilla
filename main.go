@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/benschw/chinchilla/ep"
+	"github.com/hashicorp/consul/api"
 )
 
 func main() {
@@ -28,9 +29,14 @@ func main() {
 			Port:     5672,
 		},
 	}
-
+	client, err := api.NewClient(api.DefaultConfig())
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
 	cfgMgr := ep.NewConfigManager([]ep.ConfigProvider{
-		&ep.YamlConfigProvider{Path: "./config.yaml"},
+		//&ep.YamlConfigProvider{Path: "./config.yaml"},
+		&ep.ConsulConfigProvider{Client: client},
 	})
 
 	svc := ep.NewManager(ap, cfgMgr)
