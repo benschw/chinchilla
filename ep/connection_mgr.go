@@ -17,10 +17,21 @@ type RabbitAddressProvider interface {
 	Get() RabbitAddress
 }
 
+// Satisfy the interface, but just pass through static data
 type StaticRabbitAddressProvider struct {
 	Address RabbitAddress
 }
 
 func (a *StaticRabbitAddressProvider) Get() RabbitAddress {
 	return a.Address
+}
+
+// Load Connection String from Consul
+// @todo
+type ConsulRabbitAddressProvider struct {
+}
+
+func (a *ConsulRabbitAddressProvider) Get() RabbitAddress {
+	var address RabbitAddress
+	return address
 }

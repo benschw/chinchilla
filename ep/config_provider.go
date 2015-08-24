@@ -26,3 +26,13 @@ type StaticConfigProvider struct {
 func (c *StaticConfigProvider) GetConfig() (Config, error) {
 	return c.Config, nil
 }
+
+// Load config from Consul
+// @todo
+type ConsulConfigProvider struct {
+}
+
+func (c *ConsulConfigProvider) GetConfig() (Config, error) {
+	var cfg Config
+	return cfg, nil
+}
