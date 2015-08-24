@@ -12,26 +12,29 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func NewManager(cfgMgr *ConfigManager) *Manager {
+func NewManager(ap RabbitAddressProvider, cfgMgr *ConfigManager) *Manager {
 	return &Manager{
-		eps:    make(map[string]*Endpoint),
-		epErrs: make(chan EpError),
-		cfgMgr: cfgMgr,
-		ttl:    5,
+		ap:        ap,
+		eps:       make(map[string]*Endpoint),
+		cfgMgr:    cfgMgr,
+		ttl:       5,
+		connRetry: 2,
 	}
 }
 
 type Manager struct {
-	conn    *amqp.Connection
-	connErr chan *amqp.Error
-	eps     map[string]*Endpoint
-	epErrs  chan EpError
-	cfgMgr  *ConfigManager
-	ttl     int
+	ap        RabbitAddressProvider
+	conn      *amqp.Connection
+	connErr   chan *amqp.Error
+	eps       map[string]*Endpoint
+	cfgMgr    *ConfigManager
+	ttl       int
+	connRetry int
 }
 
 func (m *Manager) connect() error {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	add := m.ap.Get()
+	conn, err := amqp.Dial(add.String())
 	if err != nil {
 		return err
 	}
@@ -41,21 +44,23 @@ func (m *Manager) connect() error {
 }
 
 func (m *Manager) Run() error {
+	log.Println("Starting...")
 	go m.cfgMgr.Manage(m.ttl)
 
 	if err := m.connect(); err != nil {
 		return err
 	}
 
-	log.Println("starting up")
-	// control flow with signals
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
 	signal.Notify(sigCh, syscall.SIGTERM)
 	signal.Notify(sigCh, syscall.SIGHUP)
 
+	// main control flow
 	for {
 		select {
+
+		// If a signal is caught, either shutdown or reload gracefully
 		case sig := <-sigCh:
 			switch sig {
 			case os.Interrupt:
@@ -66,23 +71,23 @@ func (m *Manager) Run() error {
 			case syscall.SIGHUP:
 				m.Reload()
 			}
+
+		// If connection is lost, keep trying to reconnect forever
 		case err, ok := <-m.connErr:
-			// if connection is lost, keep trying to reconnect forever
 			if err != nil {
 				log.Printf("Connection Lost: %s", err)
 			}
 			if !ok {
-				log.Printf("Waiting %d seconds before reconnect attempt", m.ttl)
-				time.Sleep(time.Duration(m.ttl) * time.Second)
+				log.Printf("Waiting %d seconds before reconnect attempt", m.connRetry)
+				time.Sleep(time.Duration(m.connRetry) * time.Second)
 			}
 			if err := m.connect(); err != nil {
 				log.Printf("Can't Reconnect: %s", err)
 				continue
 			}
 			m.reloadEndpoints()
-		case err := <-m.epErrs:
-			//delete(m.eps, err.Name)
-			log.Printf("%s endpoint just errored out: %s", err.Name, err.Err)
+
+		// Handle incoming config updates
 		case cfgU := <-m.cfgMgr.Updates:
 			switch cfgU.T {
 			case ConfigUpdateUpdate:
@@ -158,7 +163,7 @@ func (m *Manager) restartEndpoint(cfg EndpointConfig) error {
 	if err != nil {
 		return err
 	}
-	ep := New(ch, cfg, m.epErrs)
+	ep := New(ch, cfg)
 	if err := ep.Start(); err != nil {
 		return err
 	}

@@ -59,7 +59,15 @@ func GetServices() (*ep.Manager, *ex.Server, *ex.Publisher, *ex.Publisher) {
 		&ep.StaticConfigProvider{Config: cfg},
 	})
 
-	mgr := ep.NewManager(cfgMgr)
+	ap := &ep.StaticRabbitAddressProvider{
+		Address: ep.RabbitAddress{
+			User:     "guest",
+			Password: "guest",
+			Host:     "localhost",
+			Port:     5672,
+		},
+	}
+	mgr := ep.NewManager(ap, cfgMgr)
 	return mgr, server, p, p2
 }
 

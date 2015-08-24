@@ -14,12 +14,11 @@ type EpError struct {
 	Err  error
 }
 
-func New(ch *amqp.Channel, cfg EndpointConfig, epErrs chan EpError) *Endpoint {
+func New(ch *amqp.Channel, cfg EndpointConfig) *Endpoint {
 
 	ep := &Endpoint{
 		exit:     make(chan bool),
 		exitResp: make(chan bool),
-		errs:     epErrs,
 		Ch:       ch,
 		Config:   cfg,
 	}
@@ -31,7 +30,6 @@ type Endpoint struct {
 	Config   EndpointConfig
 	exit     chan bool
 	exitResp chan bool
-	errs     chan EpError
 }
 
 func (e *Endpoint) Start() error {
@@ -150,8 +148,8 @@ func processMsg(d amqp.Delivery, cfg EndpointConfig) (bool, error) {
 	}
 
 	if !okStatus(r.StatusCode) {
-		// nack & don't requeue if endpoint responds with an error
-		return false, fmt.Errorf("Code from '%s: %s' was '%d'", cfg.Method, url, r.StatusCode)
+		// nack & requeue if response code is ! 2xx
+		return true, fmt.Errorf("Code from '%s: %s' was '%d'", cfg.Method, url, r.StatusCode)
 	}
 
 	// ack
@@ -159,5 +157,5 @@ func processMsg(d amqp.Delivery, cfg EndpointConfig) (bool, error) {
 }
 
 func okStatus(code int) bool {
-	return code == 200
+	return code >= 200 && code < 300
 }

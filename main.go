@@ -14,29 +14,26 @@ func main() {
 	flag.Parse()
 
 	if *useSyslog {
-		logwriter, err := syslog.New(syslog.LOG_NOTICE, "todo")
+		logwriter, err := syslog.New(syslog.LOG_NOTICE, "chinchilla")
 		if err == nil {
 			log.SetOutput(logwriter)
 		}
 	}
-	//	var cfg ep.Config
 
-	//	if err := config.Bind("./config.yaml", &cfg); err != nil {
-	//		log.Println(err)
-	//		os.Exit(1)
-	//	}
-	//ap := clb.NewAddressProvider("rabbit.service.consul")
-	//ap := &clb.StaticAddressProvider{Address: dns.Address{
-	//	Address: "localhost",
-	//	Port:    5672,
-	//}}
-	//svc := ep.New(ap, cfg)
+	ap := &ep.StaticRabbitAddressProvider{
+		Address: ep.RabbitAddress{
+			User:     "guest",
+			Password: "guest",
+			Host:     "localhost",
+			Port:     5672,
+		},
+	}
 
 	cfgMgr := ep.NewConfigManager([]ep.ConfigProvider{
 		&ep.YamlConfigProvider{Path: "./config.yaml"},
 	})
 
-	svc := ep.NewManager(cfgMgr)
+	svc := ep.NewManager(ap, cfgMgr)
 	if err := svc.Run(); err != nil {
 		log.Println(err)
 		os.Exit(1)
