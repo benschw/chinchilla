@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"testing"
 
@@ -71,23 +72,24 @@ func GetServices() (*ep.Manager, *ex.Server, *ex.Publisher, *ex.Publisher) {
 	return mgr, server, p, p2
 }
 
-func testPublish(t *testing.T) {
+func TestPublish(t *testing.T) {
 	// setup
 	mgr, server, p, _ := GetServices()
 	go server.Start()
-
 	go mgr.Run()
 
 	body := "Hello World"
 
 	// when
 	err := p.Publish(body, "text/plain")
+	assert.Nil(t, err)
 
-	server.Stop()
+	time.Sleep(200 * time.Millisecond)
+
 	mgr.Stop()
+	server.Stop()
 
 	// then
-	assert.Nil(t, err)
 	statLen := len(server.H.Stats["Foo"])
 	assert.Equal(t, 1, statLen, "wrong number of stats")
 	if statLen > 0 {
@@ -97,9 +99,7 @@ func testPublish(t *testing.T) {
 func TestPublishLotsAndLots(t *testing.T) {
 	// setup
 	mgr, server, p, p2 := GetServices()
-
 	go server.Start()
-
 	go mgr.Run()
 
 	body := "Hello World"

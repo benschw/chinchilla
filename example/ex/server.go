@@ -83,9 +83,10 @@ func (s *Server) Start() error {
 	r.HandleFunc("/bad", s.H.Bad).Methods("POST")
 	r.HandleFunc("/slow", s.H.Slow).Methods("POST")
 
-	http.Handle("/", r)
+	sMux := http.NewServeMux()
+	sMux.Handle("/", r)
 
-	return s.S.Start()
+	return s.S.Start(sMux)
 }
 func (s *Server) Stop() {
 	s.S.Stop()
