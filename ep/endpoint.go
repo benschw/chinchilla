@@ -35,6 +35,7 @@ type Endpoint struct {
 }
 
 func (e *Endpoint) Start() error {
+	log.Printf("%s: Starting Endpoint", e.Config.Name)
 	msgs, err := e.bindToRabbit()
 	if err != nil {
 		return err
@@ -46,7 +47,7 @@ func (e *Endpoint) Start() error {
 }
 
 func (e *Endpoint) Stop() {
-	log.Printf("Stopping endpoint %s", e.Config.Name)
+	log.Printf("%s: Endpoint Stopping", e.Config.Name)
 
 	// if we detected a bad connection and already closed down the consumer, `e.exit` will be closed
 	defer func() {
@@ -58,11 +59,10 @@ func (e *Endpoint) Stop() {
 
 	<-e.exitResp
 
-	log.Printf("Stopped endpoint %s", e.Config.Name)
+	log.Printf("%s: Endpoint Stopped", e.Config.Name)
 }
 
 func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
-	log.Printf("Binding to Queue '%s'", e.Config.QueueName)
 
 	q, err := e.Ch.QueueDeclare(
 		e.Config.QueueName, // name

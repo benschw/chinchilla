@@ -66,13 +66,15 @@ func (m *Manager) Run() error {
 			case syscall.SIGHUP:
 				m.Reload()
 			}
-		case err := <-m.connErr:
+		case err, ok := <-m.connErr:
 			// if connection is lost, keep trying to reconnect forever
 			if err != nil {
 				log.Printf("Connection Lost: %s", err)
 			}
-			log.Printf("Waiting %d seconds before reconnect attempt", m.ttl)
-			time.Sleep(time.Duration(m.ttl) * time.Second)
+			if !ok {
+				log.Printf("Waiting %d seconds before reconnect attempt", m.ttl)
+				time.Sleep(time.Duration(m.ttl) * time.Second)
+			}
 			if err := m.connect(); err != nil {
 				log.Printf("Can't Reconnect: %s", err)
 				continue
