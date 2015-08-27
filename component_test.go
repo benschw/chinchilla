@@ -31,7 +31,7 @@ func GetPublisher(cfg *config.EndpointConfig) *ex.Publisher {
 	return p
 }
 
-func GetServices() (*ep.Manager, *ex.Server, *ex.Publisher, *ex.Publisher) {
+func GetServices() (*ep.EndpointManager, *ex.Server, *ex.Publisher, *ex.Publisher) {
 	port := uint16(rando.Port())
 
 	server := ex.NewServer(fmt.Sprintf(":%d", port))
@@ -54,9 +54,7 @@ func GetServices() (*ep.Manager, *ex.Server, *ex.Publisher, *ex.Publisher) {
 	p := GetPublisher(&epCfg)
 	p2 := GetPublisher(&epCfg2)
 
-	cfgMgr := config.NewWatcher([]config.EndpointsProvider{
-		&config.StaticRepo{Endpoints: []config.EndpointConfig{epCfg, epCfg2}},
-	})
+	cfgMgr := config.NewWatcher(&config.StaticRepo{Endpoints: []config.EndpointConfig{epCfg, epCfg2}})
 
 	ap := &config.StaticRepo{
 		Address: config.RabbitAddress{

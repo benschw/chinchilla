@@ -3,14 +3,18 @@ package ep
 import (
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/streadway/amqp"
+)
+
+type Trigger int
+
+const (
+	TriggerStop   = iota
+	TriggerReload = iota
 )
 
 func NewManager(ap config.RabbitAddressProvider, cfgWatcher *config.ConfigWatcher) *EndpointManager {
@@ -20,6 +24,7 @@ func NewManager(ap config.RabbitAddressProvider, cfgWatcher *config.ConfigWatche
 		cfgWatcher: cfgWatcher,
 		ttl:        5,
 		connRetry:  2,
+		triggers:   make(chan Trigger, 1),
 	}
 }
 
@@ -31,6 +36,7 @@ type EndpointManager struct {
 	cfgWatcher *config.ConfigWatcher
 	ttl        int
 	connRetry  int
+	triggers   chan Trigger
 }
 
 func (m *EndpointManager) connect() error {
@@ -51,24 +57,19 @@ func (m *EndpointManager) Run() error {
 		return err
 	}
 
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt)
-	signal.Notify(sigCh, syscall.SIGTERM)
-	signal.Notify(sigCh, syscall.SIGHUP)
+	go WatchSignals(m.triggers)
 
 	// main control flow
 	for {
 		select {
 
 		// If a signal is caught, either shutdown or reload gracefully
-		case sig := <-sigCh:
-			switch sig {
-			case os.Interrupt:
-				fallthrough
-			case syscall.SIGTERM:
+		case t := <-m.triggers:
+			switch t {
+			case TriggerStop:
 				m.Stop()
 				return nil
-			case syscall.SIGHUP:
+			case TriggerReload:
 				m.Reload()
 			}
 

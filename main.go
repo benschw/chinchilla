@@ -24,13 +24,13 @@ func main() {
 	}
 
 	var ap config.RabbitAddressProvider
-	eps := make([]config.EndpointsProvider, 0)
+	var epp config.EndpointsProvider
 
 	if *configPath != "" {
 		repo := &config.YamlRepo{Path: *configPath}
 
 		ap = repo
-		eps = append(eps, repo)
+		epp = repo
 	} else {
 		client, err := api.NewClient(api.DefaultConfig())
 		if err != nil {
@@ -39,10 +39,10 @@ func main() {
 		}
 		repo := &config.ConsulRepo{Client: client}
 		ap = repo
-		eps = append(eps, repo)
+		epp = repo
 	}
 
-	cfgWatcher := config.NewWatcher(eps)
+	cfgWatcher := config.NewWatcher(epp)
 
 	svc := ep.NewManager(ap, cfgWatcher)
 	if err := svc.Run(); err != nil {

@@ -18,11 +18,7 @@ func TestConfigManagerStartup(t *testing.T) {
 		Uri:         "/foo",
 		Method:      "POST",
 	}
-	cfgMgr := NewWatcher(
-		[]EndpointsProvider{
-			&StaticRepo{Endpoints: []EndpointConfig{epCfg}},
-		},
-	)
+	cfgMgr := NewWatcher(&StaticRepo{Endpoints: []EndpointConfig{epCfg}})
 
 	// when
 	err := cfgMgr.processProviders()
@@ -42,9 +38,7 @@ func TestConfigManagerChange(t *testing.T) {
 		Method:      "POST",
 	}
 	provider := &StaticRepo{Endpoints: []EndpointConfig{epCfg}}
-	cfgMgr := NewWatcher([]EndpointsProvider{
-		provider,
-	})
+	cfgMgr := NewWatcher(provider)
 
 	// when
 	err := cfgMgr.processProviders()
