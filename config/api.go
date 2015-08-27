@@ -1,6 +1,9 @@
-package ep
+package config
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type Config struct {
 	Connection ConnectionConfig `json: "connection"`
@@ -27,4 +30,26 @@ type EndpointConfig struct {
 func (c *EndpointConfig) Equals(cfg EndpointConfig) bool {
 	// @todo build this our more efficiently/explicitely
 	return reflect.DeepEqual(*c, cfg)
+}
+
+type RabbitAddress struct {
+	User     string
+	Password string
+	Host     string
+	Port     int
+}
+
+func (a *RabbitAddress) String() string {
+	return fmt.Sprintf("amqp://%s:%s@%s:%d/", a.User, a.Password, a.Host, a.Port)
+}
+
+// repo helper
+func connectionConfigToAddress(c ConnectionConfig) (RabbitAddress, error) {
+	// @todo discover if ServiceName is set
+	return RabbitAddress{
+		User:     c.User,
+		Password: c.Password,
+		Host:     c.Host,
+		Port:     c.Port,
+	}, nil
 }

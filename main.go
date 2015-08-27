@@ -6,6 +6,7 @@ import (
 	"log/syslog"
 	"os"
 
+	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
 	"github.com/hashicorp/consul/api"
 )
@@ -21,25 +22,29 @@ func main() {
 			log.SetOutput(logwriter)
 		}
 	}
-	var ap ep.RabbitAddressProvider
-	eps := make([]ep.ConfigProvider, 0)
+
+	var ap config.RabbitAddressProvider
+	eps := make([]config.EndpointsProvider, 0)
 
 	if *configPath != "" {
-		ap = &ep.YamlRabbitAddressProvider{Path: *configPath}
-		eps = append(eps, &ep.YamlConfigProvider{Path: *configPath})
+		repo := &config.YamlRepo{Path: *configPath}
+
+		ap = repo
+		eps = append(eps, repo)
 	} else {
 		client, err := api.NewClient(api.DefaultConfig())
 		if err != nil {
 			log.Println(err)
 			os.Exit(1)
 		}
-		ap = &ep.ConsulRabbitAddressProvider{Client: client}
-		eps = append(eps, &ep.ConsulConfigProvider{Client: client})
+		repo := &config.ConsulRepo{Client: client}
+		ap = repo
+		eps = append(eps, repo)
 	}
 
-	cfgMgr := ep.NewConfigManager(eps)
+	cfgWatcher := config.NewWatcher(eps)
 
-	svc := ep.NewManager(ap, cfgMgr)
+	svc := ep.NewManager(ap, cfgWatcher)
 	if err := svc.Run(); err != nil {
 		log.Println(err)
 		os.Exit(1)

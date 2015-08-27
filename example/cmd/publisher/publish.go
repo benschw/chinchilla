@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/benschw/chinchilla/ep"
+	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/example/ex"
 	"github.com/streadway/amqp"
 )
@@ -31,7 +31,7 @@ func main() {
 
 	p := &ex.Publisher{
 		Conn: conn,
-		Config: &ep.EndpointConfig{
+		Config: &config.EndpointConfig{
 			Name:      "TestEndpoint",
 			QueueName: *queueName,
 		},

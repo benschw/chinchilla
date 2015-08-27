@@ -6,6 +6,7 @@ import (
 
 	"testing"
 
+	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
 	"github.com/benschw/chinchilla/example/ex"
 	"github.com/benschw/opin-go/rando"
@@ -22,7 +23,7 @@ func init() {
 	}
 	conn = c
 }
-func GetPublisher(cfg *ep.EndpointConfig) *ex.Publisher {
+func GetPublisher(cfg *config.EndpointConfig) *ex.Publisher {
 	p := &ex.Publisher{
 		Conn:   conn,
 		Config: cfg,
@@ -35,14 +36,14 @@ func GetServices() (*ep.Manager, *ex.Server, *ex.Publisher, *ex.Publisher) {
 
 	server := ex.NewServer(fmt.Sprintf(":%d", port))
 
-	epCfg := ep.EndpointConfig{
+	epCfg := config.EndpointConfig{
 		Name:        "Foo",
 		QueueName:   "test.foo",
 		ServiceHost: fmt.Sprintf("http://localhost:%d", port),
 		Uri:         "/foo",
 		Method:      "POST",
 	}
-	epCfg2 := ep.EndpointConfig{
+	epCfg2 := config.EndpointConfig{
 		Name:        "Bar",
 		QueueName:   "test.bar",
 		ServiceHost: fmt.Sprintf("http://localhost:%d", port),
@@ -53,12 +54,12 @@ func GetServices() (*ep.Manager, *ex.Server, *ex.Publisher, *ex.Publisher) {
 	p := GetPublisher(&epCfg)
 	p2 := GetPublisher(&epCfg2)
 
-	cfgMgr := ep.NewConfigManager([]ep.ConfigProvider{
-		&ep.StaticConfigProvider{Endpoints: []ep.EndpointConfig{epCfg, epCfg2}},
+	cfgMgr := config.NewWatcher([]config.EndpointsProvider{
+		&config.StaticRepo{Endpoints: []config.EndpointConfig{epCfg, epCfg2}},
 	})
 
-	ap := &ep.StaticRabbitAddressProvider{
-		Address: ep.RabbitAddress{
+	ap := &config.StaticRepo{
+		Address: config.RabbitAddress{
 			User:     "guest",
 			Password: "guest",
 			Host:     "localhost",

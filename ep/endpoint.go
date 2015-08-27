@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/benschw/chinchilla/config"
 	"github.com/streadway/amqp"
 )
 
@@ -14,7 +15,7 @@ type EpError struct {
 	Err  error
 }
 
-func New(ch *amqp.Channel, cfg EndpointConfig) *Endpoint {
+func New(ch *amqp.Channel, cfg config.EndpointConfig) *Endpoint {
 
 	ep := &Endpoint{
 		exit:     make(chan bool),
@@ -27,7 +28,7 @@ func New(ch *amqp.Channel, cfg EndpointConfig) *Endpoint {
 
 type Endpoint struct {
 	Ch       *amqp.Channel
-	Config   EndpointConfig
+	Config   config.EndpointConfig
 	exit     chan bool
 	exitResp chan bool
 }
@@ -97,7 +98,7 @@ func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
 	}
 	return msgs, nil
 }
-func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg EndpointConfig) {
+func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointConfig) {
 	defer e.Ch.Close()
 	for {
 		select {
@@ -126,7 +127,7 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg EndpointConfig) {
 	}
 }
 
-func processMsg(d amqp.Delivery, cfg EndpointConfig) (bool, error) {
+func processMsg(d amqp.Delivery, cfg config.EndpointConfig) (bool, error) {
 	url := cfg.ServiceHost + cfg.Uri
 
 	req, err := http.NewRequest(cfg.Method, url, bytes.NewBuffer(d.Body))

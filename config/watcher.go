@@ -1,4 +1,4 @@
-package ep
+package config
 
 import (
 	"log"
@@ -8,8 +8,8 @@ import (
 type ConfigUpdateType int
 
 const (
-	ConfigUpdateUpdate ConfigUpdateType = iota
-	ConfigUpdateDelete ConfigUpdateType = iota
+	EndpointUpdate ConfigUpdateType = iota
+	EndpointDelete ConfigUpdateType = iota
 )
 
 // Sent over Update chan for Endpoint Mgr to operate on
@@ -19,8 +19,8 @@ type ConfigUpdate struct {
 	Config EndpointConfig
 }
 
-func NewConfigManager(ps []ConfigProvider) *ConfigManager {
-	return &ConfigManager{
+func NewWatcher(ps []EndpointsProvider) *ConfigWatcher {
+	return &ConfigWatcher{
 		Providers: ps,
 		Updates:   make(chan ConfigUpdate, 5),
 		cache:     make(map[string]EndpointConfig),
@@ -28,13 +28,13 @@ func NewConfigManager(ps []ConfigProvider) *ConfigManager {
 }
 
 // Coordinates config providers and delivers ep updates over the Updates chan
-type ConfigManager struct {
-	Providers []ConfigProvider
+type ConfigWatcher struct {
+	Providers []EndpointsProvider
 	Updates   chan ConfigUpdate
 	cache     map[string]EndpointConfig
 }
 
-func (c *ConfigManager) Manage(ttl int) {
+func (c *ConfigWatcher) Watch(ttl int) {
 
 	for {
 		if err := c.processProviders(); err != nil {
@@ -44,12 +44,12 @@ func (c *ConfigManager) Manage(ttl int) {
 	}
 
 }
-func (c *ConfigManager) processProviders() error {
+func (c *ConfigWatcher) processProviders() error {
 	epCfgs := make(map[string]EndpointConfig)
 
 	// capture all EndpointConfigs, return/abort if problems
 	for _, p := range c.Providers {
-		eps, err := p.GetConfig()
+		eps, err := p.GetEndpoints()
 		if err != nil {
 			return err
 		}
@@ -63,7 +63,7 @@ func (c *ConfigManager) processProviders() error {
 	for n, _ := range c.cache {
 		if _, ok := epCfgs[n]; !ok {
 			c.Updates <- ConfigUpdate{
-				T:    ConfigUpdateDelete,
+				T:    EndpointDelete,
 				Name: n,
 			}
 			delete(c.cache, n)
@@ -75,7 +75,7 @@ func (c *ConfigManager) processProviders() error {
 
 		if !cfg.Equals(c.cache[n]) {
 			c.Updates <- ConfigUpdate{
-				T:      ConfigUpdateUpdate,
+				T:      EndpointUpdate,
 				Config: cfg,
 			}
 			c.cache[n] = cfg

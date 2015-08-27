@@ -9,31 +9,32 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/benschw/chinchilla/config"
 	"github.com/streadway/amqp"
 )
 
-func NewManager(ap RabbitAddressProvider, cfgMgr *ConfigManager) *Manager {
+func NewManager(ap config.RabbitAddressProvider, cfgWatcher *config.ConfigWatcher) *Manager {
 	return &Manager{
-		ap:        ap,
-		eps:       make(map[string]*Endpoint),
-		cfgMgr:    cfgMgr,
-		ttl:       5,
-		connRetry: 2,
+		ap:         ap,
+		eps:        make(map[string]*Endpoint),
+		cfgWatcher: cfgWatcher,
+		ttl:        5,
+		connRetry:  2,
 	}
 }
 
 type Manager struct {
-	ap        RabbitAddressProvider
-	conn      *amqp.Connection
-	connErr   chan *amqp.Error
-	eps       map[string]*Endpoint
-	cfgMgr    *ConfigManager
-	ttl       int
-	connRetry int
+	ap         config.RabbitAddressProvider
+	conn       *amqp.Connection
+	connErr    chan *amqp.Error
+	eps        map[string]*Endpoint
+	cfgWatcher *config.ConfigWatcher
+	ttl        int
+	connRetry  int
 }
 
 func (m *Manager) connect() error {
-	add, err := m.ap.Get()
+	add, err := m.ap.GetAddress()
 	if err != nil {
 		return err
 	}
@@ -48,7 +49,7 @@ func (m *Manager) connect() error {
 
 func (m *Manager) Run() error {
 	log.Println("Starting...")
-	go m.cfgMgr.Manage(m.ttl)
+	go m.cfgWatcher.Watch(m.ttl)
 
 	if err := m.connect(); err != nil {
 		return err
@@ -91,13 +92,13 @@ func (m *Manager) Run() error {
 			m.reloadEndpoints()
 
 		// Handle incoming config updates
-		case cfgU := <-m.cfgMgr.Updates:
+		case cfgU := <-m.cfgWatcher.Updates:
 			switch cfgU.T {
-			case ConfigUpdateUpdate:
+			case config.EndpointUpdate:
 				if err := m.restartEndpoint(cfgU.Config); err != nil {
 					log.Printf("%s: problem starting/reloading: %s", cfgU.Config.Name, err)
 				}
-			case ConfigUpdateDelete:
+			case config.EndpointDelete:
 				if err := m.stopEndpoint(cfgU.Name); err != nil {
 					log.Printf("%s: problem stopping: %s", cfgU.Name, err)
 				}
@@ -157,7 +158,7 @@ func (m *Manager) reloadEndpoints() {
 }
 
 // Start endpoint, stopping first if it was already running. update index
-func (m *Manager) restartEndpoint(cfg EndpointConfig) error {
+func (m *Manager) restartEndpoint(cfg config.EndpointConfig) error {
 	if old, ok := m.eps[cfg.Name]; ok {
 		old.Stop()
 		delete(m.eps, cfg.Name)

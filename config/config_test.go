@@ -1,4 +1,4 @@
-package ep
+package config
 
 import (
 	"fmt"
@@ -18,9 +18,9 @@ func TestConfigManagerStartup(t *testing.T) {
 		Uri:         "/foo",
 		Method:      "POST",
 	}
-	cfgMgr := NewConfigManager(
-		[]ConfigProvider{
-			&StaticConfigProvider{Endpoints: []EndpointConfig{epCfg}},
+	cfgMgr := NewWatcher(
+		[]EndpointsProvider{
+			&StaticRepo{Endpoints: []EndpointConfig{epCfg}},
 		},
 	)
 
@@ -41,8 +41,8 @@ func TestConfigManagerChange(t *testing.T) {
 		Uri:         "/foo",
 		Method:      "POST",
 	}
-	provider := &StaticConfigProvider{Endpoints: []EndpointConfig{epCfg}}
-	cfgMgr := NewConfigManager([]ConfigProvider{
+	provider := &StaticRepo{Endpoints: []EndpointConfig{epCfg}}
+	cfgMgr := NewWatcher([]EndpointsProvider{
 		provider,
 	})
 

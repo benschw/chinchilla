@@ -3,13 +3,13 @@ package ex
 import (
 	"log"
 
-	"github.com/benschw/chinchilla/ep"
+	"github.com/benschw/chinchilla/config"
 	"github.com/streadway/amqp"
 )
 
 type Publisher struct {
 	Conn   *amqp.Connection
-	Config *ep.EndpointConfig
+	Config *config.EndpointConfig
 }
 
 func (p *Publisher) Publish(body string, contentType string) error {
