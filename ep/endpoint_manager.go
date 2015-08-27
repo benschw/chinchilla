@@ -13,8 +13,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func NewManager(ap config.RabbitAddressProvider, cfgWatcher *config.ConfigWatcher) *Manager {
-	return &Manager{
+func NewManager(ap config.RabbitAddressProvider, cfgWatcher *config.ConfigWatcher) *EndpointManager {
+	return &EndpointManager{
 		ap:         ap,
 		eps:        make(map[string]*Endpoint),
 		cfgWatcher: cfgWatcher,
@@ -23,7 +23,7 @@ func NewManager(ap config.RabbitAddressProvider, cfgWatcher *config.ConfigWatche
 	}
 }
 
-type Manager struct {
+type EndpointManager struct {
 	ap         config.RabbitAddressProvider
 	conn       *amqp.Connection
 	connErr    chan *amqp.Error
@@ -33,21 +33,17 @@ type Manager struct {
 	connRetry  int
 }
 
-func (m *Manager) connect() error {
-	add, err := m.ap.GetAddress()
-	if err != nil {
-		return err
-	}
-	conn, err := amqp.Dial(add.String())
+func (m *EndpointManager) connect() error {
+	conn, connErr, err := DialRabbit(m.ap)
 	if err != nil {
 		return err
 	}
 	m.conn = conn
-	m.connErr = m.conn.NotifyClose(make(chan *amqp.Error))
+	m.connErr = connErr
 	return nil
 }
 
-func (m *Manager) Run() error {
+func (m *EndpointManager) Run() error {
 	log.Println("Starting...")
 	go m.cfgWatcher.Watch(m.ttl)
 
@@ -108,7 +104,7 @@ func (m *Manager) Run() error {
 	return nil
 }
 
-func (m *Manager) Reload() {
+func (m *EndpointManager) Reload() {
 	log.Printf("Endpoint Manager Reloading")
 	if err := m.connect(); err != nil {
 		// just log out the problem and don't try to recover
@@ -118,7 +114,7 @@ func (m *Manager) Reload() {
 	m.reloadEndpoints()
 	log.Printf("Endpoint Manager Reloaded")
 }
-func (m *Manager) Stop() {
+func (m *EndpointManager) Stop() {
 	log.Printf("Stopping %d Endpoints", len(m.eps))
 	defer m.conn.Close()
 
@@ -138,7 +134,7 @@ func (m *Manager) Stop() {
 	log.Printf("All Endpoints Stopped")
 }
 
-func (m *Manager) reloadEndpoints() {
+func (m *EndpointManager) reloadEndpoints() {
 	log.Printf("Endpoints Reloading")
 
 	var done sync.WaitGroup
@@ -158,7 +154,7 @@ func (m *Manager) reloadEndpoints() {
 }
 
 // Start endpoint, stopping first if it was already running. update index
-func (m *Manager) restartEndpoint(cfg config.EndpointConfig) error {
+func (m *EndpointManager) restartEndpoint(cfg config.EndpointConfig) error {
 	if old, ok := m.eps[cfg.Name]; ok {
 		old.Stop()
 		delete(m.eps, cfg.Name)
@@ -176,7 +172,7 @@ func (m *Manager) restartEndpoint(cfg config.EndpointConfig) error {
 }
 
 // Stop endpoint and remove from index
-func (m *Manager) stopEndpoint(name string) error {
+func (m *EndpointManager) stopEndpoint(name string) error {
 	old, ok := m.eps[name]
 	if !ok {
 		return fmt.Errorf("%s not present, can't stop", name)
