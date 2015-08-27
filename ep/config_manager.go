@@ -49,15 +49,13 @@ func (c *ConfigManager) processProviders() error {
 
 	// capture all EndpointConfigs, return/abort if problems
 	for _, p := range c.Providers {
-		cfg, err := p.GetConfig()
+		eps, err := p.GetConfig()
 		if err != nil {
 			return err
 		}
 
-		if cfg.Endpoints != nil {
-			for _, ec := range cfg.Endpoints {
-				epCfgs[ec.Name] = ec
-			}
+		for _, ec := range eps {
+			epCfgs[ec.Name] = ec
 		}
 	}
 

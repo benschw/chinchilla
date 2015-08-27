@@ -3,7 +3,16 @@ package ep
 import "reflect"
 
 type Config struct {
-	Endpoints []EndpointConfig `json: "endpoints"`
+	Connection ConnectionConfig `json: "connection"`
+	Endpoints  []EndpointConfig `json: "endpoints"`
+}
+
+type ConnectionConfig struct {
+	User        string `json: "user"`
+	Password    string `json: "password"`
+	Host        string `json: "host"`
+	ServiceName string `json: "servicename"`
+	Port        int    `json: "port"`
 }
 
 type EndpointConfig struct {

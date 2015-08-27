@@ -49,15 +49,12 @@ func GetServices() (*ep.Manager, *ex.Server, *ex.Publisher, *ex.Publisher) {
 		Uri:         "/bar",
 		Method:      "POST",
 	}
-	cfg := ep.Config{
-		Endpoints: []ep.EndpointConfig{epCfg, epCfg2},
-	}
 
 	p := GetPublisher(&epCfg)
 	p2 := GetPublisher(&epCfg2)
 
 	cfgMgr := ep.NewConfigManager([]ep.ConfigProvider{
-		&ep.StaticConfigProvider{Config: cfg},
+		&ep.StaticConfigProvider{Endpoints: []ep.EndpointConfig{epCfg, epCfg2}},
 	})
 
 	ap := &ep.StaticRabbitAddressProvider{

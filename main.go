@@ -12,6 +12,7 @@ import (
 
 func main() {
 	useSyslog := flag.Bool("syslog", false, "log to syslog")
+	configPath := flag.String("config", "", "path to yaml config. omit to use consul")
 	flag.Parse()
 
 	if *useSyslog {
@@ -20,24 +21,23 @@ func main() {
 			log.SetOutput(logwriter)
 		}
 	}
+	var ap ep.RabbitAddressProvider
+	eps := make([]ep.ConfigProvider, 0)
 
-	ap := &ep.StaticRabbitAddressProvider{
-		Address: ep.RabbitAddress{
-			User:     "guest",
-			Password: "guest",
-			Host:     "localhost",
-			Port:     5672,
-		},
+	if *configPath != "" {
+		ap = &ep.YamlRabbitAddressProvider{Path: *configPath}
+		eps = append(eps, &ep.YamlConfigProvider{Path: *configPath})
+	} else {
+		client, err := api.NewClient(api.DefaultConfig())
+		if err != nil {
+			log.Println(err)
+			os.Exit(1)
+		}
+		ap = &ep.ConsulRabbitAddressProvider{Client: client}
+		eps = append(eps, &ep.ConsulConfigProvider{Client: client})
 	}
-	client, err := api.NewClient(api.DefaultConfig())
-	if err != nil {
-		log.Println(err)
-		os.Exit(1)
-	}
-	cfgMgr := ep.NewConfigManager([]ep.ConfigProvider{
-		//&ep.YamlConfigProvider{Path: "./config.yaml"},
-		&ep.ConsulConfigProvider{Client: client},
-	})
+
+	cfgMgr := ep.NewConfigManager(eps)
 
 	svc := ep.NewManager(ap, cfgMgr)
 	if err := svc.Run(); err != nil {

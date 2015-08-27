@@ -18,12 +18,11 @@ func TestConfigManagerStartup(t *testing.T) {
 		Uri:         "/foo",
 		Method:      "POST",
 	}
-	cfg := Config{
-		Endpoints: []EndpointConfig{epCfg},
-	}
-	cfgMgr := NewConfigManager([]ConfigProvider{
-		&StaticConfigProvider{Config: cfg},
-	})
+	cfgMgr := NewConfigManager(
+		[]ConfigProvider{
+			&StaticConfigProvider{Endpoints: []EndpointConfig{epCfg}},
+		},
+	)
 
 	// when
 	err := cfgMgr.processProviders()
@@ -42,10 +41,7 @@ func TestConfigManagerChange(t *testing.T) {
 		Uri:         "/foo",
 		Method:      "POST",
 	}
-	cfg := Config{
-		Endpoints: []EndpointConfig{epCfg},
-	}
-	provider := &StaticConfigProvider{Config: cfg}
+	provider := &StaticConfigProvider{Endpoints: []EndpointConfig{epCfg}}
 	cfgMgr := NewConfigManager([]ConfigProvider{
 		provider,
 	})
@@ -57,7 +53,7 @@ func TestConfigManagerChange(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, reflect.DeepEqual(epCfg, added.Config), fmt.Sprintf("\n   %+v\n!= %+v", epCfg, added.Config))
 
-	provider.Config.Endpoints[0].Uri = "/updated"
+	provider.Endpoints[0].Uri = "/updated"
 	err2 := cfgMgr.processProviders()
 	found := <-cfgMgr.Updates
 

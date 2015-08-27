@@ -33,7 +33,10 @@ type Manager struct {
 }
 
 func (m *Manager) connect() error {
-	add := m.ap.Get()
+	add, err := m.ap.Get()
+	if err != nil {
+		return err
+	}
 	conn, err := amqp.Dial(add.String())
 	if err != nil {
 		return err

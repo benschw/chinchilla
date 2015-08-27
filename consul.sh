@@ -10,15 +10,23 @@
 
 sleep 5
 
-echo "Configuring \"Foo\""
-curl -X PUT http://localhost:8500/v1/kv/chinchilla/
-curl -X PUT http://localhost:8500/v1/kv/chinchilla/endpoints/
-curl -X PUT http://localhost:8500/v1/kv/chinchilla/endpoints/Foo/
-curl -X PUT http://localhost:8500/v1/kv/chinchilla/endpoints/Foo/Name -d "Foo"
-curl -X PUT http://localhost:8500/v1/kv/chinchilla/endpoints/Foo/ServiceHost -d "http://localhost:8080"
-curl -X PUT http://localhost:8500/v1/kv/chinchilla/endpoints/Foo/Uri -d "/foo"
-curl -X PUT http://localhost:8500/v1/kv/chinchilla/endpoints/Foo/Method -d "POST"
-curl -X PUT http://localhost:8500/v1/kv/chinchilla/endpoints/Foo/QueueName -d "demo.foo"
-curl -X PUT http://localhost:8500/v1/kv/chinchilla/endpoints/Foo/Enable -d "true"
+read -r -d '' CONN_CFG << EOF
+user: guest
+password: guest
+host: localhost
+port: 5672
+EOF
+
+read -r -d '' FOO_CFG << EOF
+name: Foo
+queuename: demo.foo
+servicehost: http://localhost:8080
+uri: /foo
+method: POST
+EOF
+
+echo "Configuring"
+curl -X PUT http://localhost:8500/v1/kv/chinchilla/connection.yaml -d "$CONN_CFG"
+curl -X PUT http://localhost:8500/v1/kv/chinchilla/endpoints/foo.yaml -d "$FOO_CFG"
 
 wait
