@@ -15,25 +15,25 @@ type EpError struct {
 	Err  error
 }
 
-func New(ch *amqp.Channel, cfg config.EndpointConfig) *Endpoint {
+func New(ch *amqp.Channel, cfg config.EndpointConfig) (*Endpoint, error) {
 
 	ep := &Endpoint{
 		exit:     make(chan bool),
 		exitResp: make(chan bool),
-		Ch:       ch,
+		ch:       ch,
 		Config:   cfg,
 	}
-	return ep
+	return ep, ep.start()
 }
 
 type Endpoint struct {
-	Ch       *amqp.Channel
+	ch       *amqp.Channel
 	Config   config.EndpointConfig
 	exit     chan bool
 	exitResp chan bool
 }
 
-func (e *Endpoint) Start() error {
+func (e *Endpoint) start() error {
 	log.Printf("%s: Starting Endpoint", e.Config.Name)
 	msgs, err := e.bindToRabbit()
 	if err != nil {
@@ -63,7 +63,7 @@ func (e *Endpoint) Stop() {
 
 func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
 
-	q, err := e.Ch.QueueDeclare(
+	q, err := e.ch.QueueDeclare(
 		e.Config.QueueName, // name
 		true,               // durable
 		false,              // delete when unused
@@ -75,7 +75,7 @@ func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
 		return nil, err
 	}
 
-	err = e.Ch.Qos(
+	err = e.ch.Qos(
 		1,     // prefetch count
 		0,     // prefetch size
 		false, // global
@@ -84,7 +84,7 @@ func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
 		return nil, err
 	}
 
-	msgs, err := e.Ch.Consume(
+	msgs, err := e.ch.Consume(
 		q.Name, // queue
 		"",     // consumer
 		false,  // auto-ack
@@ -99,7 +99,7 @@ func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
 	return msgs, nil
 }
 func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointConfig) {
-	defer e.Ch.Close()
+	defer e.ch.Close()
 	for {
 		select {
 		case <-e.exit:

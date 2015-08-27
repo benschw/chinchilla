@@ -164,8 +164,8 @@ func (m *EndpointManager) restartEndpoint(cfg config.EndpointConfig) error {
 	if err != nil {
 		return err
 	}
-	ep := New(ch, cfg)
-	if err := ep.Start(); err != nil {
+	ep, err := New(ch, cfg)
+	if err != nil {
 		return err
 	}
 	m.eps[cfg.Name] = ep
