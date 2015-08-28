@@ -48,13 +48,13 @@ func (e *Endpoint) start() error {
 func (e *Endpoint) Stop() {
 	log.Printf("%s: Endpoint Stopping", e.Config.Name)
 
-	// if we detected a bad connection and already closed down the consumer, `e.exit` will be closed
 	defer func() {
-		recover()
+		if x := recover(); x != nil {
+			log.Printf("%s: Recovering after trying to stop a stopped endpoint", e.Config.Name)
+		}
 	}()
 
 	close(e.exit)
-
 	<-e.exitResp
 
 	log.Printf("%s: Endpoint Stopped", e.Config.Name)
@@ -141,11 +141,7 @@ func processMsg(d amqp.Delivery, cfg config.EndpointConfig) (bool, error) {
 		// nack & requeue if request errors out
 		return true, err
 	}
-
-	if r == nil {
-		// nack & requeue if response is nil
-		return true, fmt.Errorf("Response from '%s: %s' was nil", cfg.Method, url)
-	}
+	defer r.Body.Close()
 
 	if !okStatus(r.StatusCode) {
 		// nack & requeue if response code is ! 2xx
