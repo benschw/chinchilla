@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"time"
 
 	"testing"
@@ -15,6 +17,10 @@ import (
 )
 
 var conn *amqp.Connection
+
+type Msg struct {
+	Message string
+}
 
 func init() {
 	c, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
@@ -73,10 +79,12 @@ func TestPublish(t *testing.T) {
 	go server.Start()
 	go mgr.Run()
 
-	body := "Hello World"
+	api := &Msg{Message: "Hello World"}
+	apiB, _ := json.Marshal(api)
+	apiStr := string(apiB)
 
 	// when
-	err := p.Publish(body, "text/plain")
+	err := p.Publish(apiStr, "application/json")
 	assert.Nil(t, err)
 
 	time.Sleep(200 * time.Millisecond)
@@ -85,10 +93,15 @@ func TestPublish(t *testing.T) {
 	server.Stop()
 
 	// then
+
 	statLen := len(server.H.Stats["Foo"])
 	assert.Equal(t, 1, statLen, "wrong number of stats")
 	if statLen > 0 {
-		assert.Equal(t, body, server.H.Stats["Foo"][0], "body not what expected")
+		foundApi := &Msg{}
+		err := json.Unmarshal([]byte(server.H.Stats["Foo"][0]), foundApi)
+		assert.Nil(t, err, "err should be nil")
+
+		assert.True(t, reflect.DeepEqual(api, foundApi), fmt.Sprintf("\n   %+v\n!= %+v", api, foundApi))
 	}
 }
 func TestPublishLotsAndLots(t *testing.T) {
@@ -100,7 +113,7 @@ func TestPublishLotsAndLots(t *testing.T) {
 	body := "Hello World"
 
 	// when
-	for i := 0; i < 500; i++ {
+	for i := 0; i < 100; i++ {
 		err := p.Publish(body, "text/plain")
 		assert.Nil(t, err)
 
@@ -112,6 +125,6 @@ func TestPublishLotsAndLots(t *testing.T) {
 	mgr.Stop()
 
 	// then
-	assert.Equal(t, 500, len(server.H.Stats["Foo"]), "wrong number of stats")
-	assert.Equal(t, 500, len(server.H.Stats["Bar"]), "wrong number of stats")
+	assert.Equal(t, 100, len(server.H.Stats["Foo"]), "wrong number of stats")
+	assert.Equal(t, 100, len(server.H.Stats["Bar"]), "wrong number of stats")
 }

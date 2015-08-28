@@ -1,8 +1,6 @@
 package ex
 
 import (
-	"log"
-
 	"github.com/benschw/chinchilla/config"
 	"github.com/streadway/amqp"
 )
@@ -31,6 +29,6 @@ func (p *Publisher) Publish(body string, contentType string) error {
 	if err != nil {
 		return err
 	}
-	log.Printf(" [x] Sent %s", body)
+	//	log.Printf(" [x] Sent %s", body)
 	return nil
 }

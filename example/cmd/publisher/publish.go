@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/example/ex"
@@ -18,6 +19,7 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
+	runs := flag.Int("runs", 1, "msgs to publish")
 	queueName := flag.String("queue", "demo.foo", "supply a queue to publish to")
 	contentType := flag.String("content-type", "text/plain", "set the message content type")
 	body := flag.String("body", "Hello World", "Set the message's body")
@@ -36,8 +38,16 @@ func main() {
 			QueueName: *queueName,
 		},
 	}
-	err = p.Publish(*body, *contentType)
-	if err != nil {
-		panic(err)
+	var done sync.WaitGroup
+	for i := 0; i < *runs; i++ {
+		done.Add(1)
+		go func(i int) {
+			err = p.Publish(fmt.Sprintf("%s-%d", *body, i), *contentType)
+			if err != nil {
+				panic(err)
+			}
+			done.Done()
+		}(i)
 	}
+	done.Wait()
 }

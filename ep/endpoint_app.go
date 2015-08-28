@@ -8,13 +8,6 @@ import (
 	"github.com/streadway/amqp"
 )
 
-type Trigger int
-
-const (
-	TriggerStop   = iota
-	TriggerReload = iota
-)
-
 func NewApp(ap config.RabbitAddressProvider, epp config.EndpointsProvider) *EndpointApp {
 	return &EndpointApp{
 		ap:        ap,
@@ -64,18 +57,17 @@ func (m *EndpointApp) Run() error {
 	// main control flow
 	for {
 		select {
-		// `Stop` func signals this chan to break out of the main loop
-		case <-m.ex:
-			m.eps.StopAllEndpoints()
-			return nil
-
-		// If a signal is caught, either shutdown or reload gracefully
-		case t := <-sigWatcher.T:
-			switch t {
-			case TriggerStop:
-				m.Stop()
-			case TriggerReload:
-				m.Reload()
+		// Handle incoming config updates
+		case cfgU := <-cfgWatcher.Updates:
+			switch cfgU.T {
+			case config.EndpointUpdate:
+				if err := m.eps.RestartEndpoint(m.conn, cfgU.Config); err != nil {
+					log.Printf("%s: problem starting/reloading: %s", cfgU.Config.Name, err)
+				}
+			case config.EndpointDelete:
+				if err := m.eps.StopEndpoint(cfgU.Name); err != nil {
+					log.Printf("%s: problem stopping: %s", cfgU.Name, err)
+				}
 			}
 
 		// If connection is lost, keep trying to reconnect forever
@@ -89,22 +81,23 @@ func (m *EndpointApp) Run() error {
 			}
 			if err := m.connect(); err != nil {
 				log.Printf("Can't Reconnect: %s", err)
-				continue
+				break
 			}
 			m.eps.RestartAllEndpoints(m.conn)
 
-		// Handle incoming config updates
-		case cfgU := <-cfgWatcher.Updates:
-			switch cfgU.T {
-			case config.EndpointUpdate:
-				if err := m.eps.RestartEndpoint(m.conn, cfgU.Config); err != nil {
-					log.Printf("%s: problem starting/reloading: %s", cfgU.Config.Name, err)
-				}
-			case config.EndpointDelete:
-				if err := m.eps.StopEndpoint(cfgU.Name); err != nil {
-					log.Printf("%s: problem stopping: %s", cfgU.Name, err)
-				}
+		// If a signal is caught, either shutdown or reload gracefully
+		case t := <-sigWatcher.T:
+			switch t {
+			case TriggerStop:
+				m.Stop()
+			case TriggerReload:
+				m.Reload()
 			}
+
+		// `Stop` func signals this chan to break out of the main loop
+		case <-m.ex:
+			m.eps.StopAllEndpoints()
+			return nil
 		}
 	}
 	return nil

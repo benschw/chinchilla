@@ -6,6 +6,13 @@ import (
 	"syscall"
 )
 
+type Trigger int
+
+const (
+	TriggerStop   = iota
+	TriggerReload = iota
+)
+
 func NewSignalWatcher() *SignalWatcher {
 	w := &SignalWatcher{
 		T:  make(chan Trigger),

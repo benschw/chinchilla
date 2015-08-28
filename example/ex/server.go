@@ -13,7 +13,8 @@ import (
 )
 
 type Handler struct {
-	Stats map[string][]string
+	Stats   map[string][]string
+	Request *http.Request
 }
 
 func (h *Handler) addStat(key string, body string) {
@@ -29,6 +30,7 @@ func (h *Handler) Foo(res http.ResponseWriter, req *http.Request) {
 	log.Printf("HTTP: Foo: '%s'", s)
 
 	h.addStat("Foo", s)
+	h.Request = req
 	rest.SetOKResponse(res, nil)
 }
 func (h *Handler) Bar(res http.ResponseWriter, req *http.Request) {
