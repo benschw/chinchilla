@@ -19,12 +19,15 @@ type ConfigUpdate struct {
 	Config EndpointConfig
 }
 
-func NewWatcher(p EndpointsProvider) *ConfigWatcher {
-	return &ConfigWatcher{
+func NewWatcher(p EndpointsProvider, ttl int) *ConfigWatcher {
+	w := &ConfigWatcher{
 		Provider: p,
 		Updates:  make(chan ConfigUpdate, 5),
 		cache:    make(map[string]EndpointConfig),
+		ex:       make(chan struct{}),
 	}
+	go w.Watch(ttl)
+	return w
 }
 
 // Coordinates config providers and delivers ep updates over the Updates chan
@@ -32,6 +35,11 @@ type ConfigWatcher struct {
 	Provider EndpointsProvider
 	Updates  chan ConfigUpdate
 	cache    map[string]EndpointConfig
+	ex       chan struct{}
+}
+
+func (c *ConfigWatcher) Stop() {
+	close(c.ex)
 }
 
 // Poll EndpointsProvider looking for EndpointConfig updates

@@ -54,17 +54,16 @@ func GetServices() (*ep.EndpointManager, *ex.Server, *ex.Publisher, *ex.Publishe
 	p := GetPublisher(&epCfg)
 	p2 := GetPublisher(&epCfg2)
 
-	cfgMgr := config.NewWatcher(&config.StaticRepo{Endpoints: []config.EndpointConfig{epCfg, epCfg2}})
-
-	ap := &config.StaticRepo{
+	repo := &config.StaticRepo{
 		Address: config.RabbitAddress{
 			User:     "guest",
 			Password: "guest",
 			Host:     "localhost",
 			Port:     5672,
 		},
+		Endpoints: []config.EndpointConfig{epCfg, epCfg2},
 	}
-	mgr := ep.NewManager(ap, cfgMgr)
+	mgr := ep.NewManager(repo, repo)
 	return mgr, server, p, p2
 }
 

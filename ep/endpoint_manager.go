@@ -17,26 +17,26 @@ const (
 	TriggerReload = iota
 )
 
-func NewManager(ap config.RabbitAddressProvider, cfgWatcher *config.ConfigWatcher) *EndpointManager {
+func NewManager(ap config.RabbitAddressProvider, epp config.EndpointsProvider) *EndpointManager {
 	return &EndpointManager{
-		ap:         ap,
-		eps:        make(map[string]*Endpoint),
-		cfgWatcher: cfgWatcher,
-		ttl:        5,
-		connRetry:  2,
-		triggers:   make(chan Trigger, 1),
+		ap:        ap,
+		epp:       epp,
+		eps:       make(map[string]*Endpoint),
+		ttl:       5,
+		connRetry: 2,
+		ex:        make(chan struct{}, 1),
 	}
 }
 
 type EndpointManager struct {
-	ap         config.RabbitAddressProvider
-	conn       *amqp.Connection
-	connErr    chan *amqp.Error
-	eps        map[string]*Endpoint
-	cfgWatcher *config.ConfigWatcher
-	ttl        int
-	connRetry  int
-	triggers   chan Trigger
+	ap        config.RabbitAddressProvider
+	epp       config.EndpointsProvider
+	conn      *amqp.Connection
+	connErr   chan *amqp.Error
+	eps       map[string]*Endpoint
+	ttl       int
+	connRetry int
+	ex        chan struct{}
 }
 
 func (m *EndpointManager) connect() error {
@@ -51,24 +51,32 @@ func (m *EndpointManager) connect() error {
 
 func (m *EndpointManager) Run() error {
 	log.Println("Starting...")
-	go m.cfgWatcher.Watch(m.ttl)
 
 	if err := m.connect(); err != nil {
 		return err
 	}
+	defer m.conn.Close()
 
-	go WatchSignals(m.triggers)
+	cfgWatcher := config.NewWatcher(m.epp, m.ttl)
+	defer cfgWatcher.Stop()
+
+	sigWatcher := NewSignalWatcher()
+	defer sigWatcher.Stop()
 
 	// main control flow
 	for {
 		select {
+		// `Stop` func signals this chan to break out of the main loop
+		case <-m.ex:
+			err := m.stopAllEndpoints()
+			log.Println("Leaving control loop")
+			return err
 
 		// If a signal is caught, either shutdown or reload gracefully
-		case t := <-m.triggers:
+		case t := <-sigWatcher.T:
 			switch t {
 			case TriggerStop:
 				m.Stop()
-				return nil
 			case TriggerReload:
 				m.Reload()
 			}
@@ -89,7 +97,7 @@ func (m *EndpointManager) Run() error {
 			m.reloadEndpoints()
 
 		// Handle incoming config updates
-		case cfgU := <-m.cfgWatcher.Updates:
+		case cfgU := <-cfgWatcher.Updates:
 			switch cfgU.T {
 			case config.EndpointUpdate:
 				if err := m.restartEndpoint(cfgU.Config); err != nil {
@@ -117,22 +125,7 @@ func (m *EndpointManager) Reload() {
 }
 func (m *EndpointManager) Stop() {
 	log.Printf("Stopping %d Endpoints", len(m.eps))
-	defer m.conn.Close()
-
-	var done sync.WaitGroup
-	for _, ep := range m.eps {
-		done.Add(1)
-		go func(ep *Endpoint) {
-			if err := m.stopEndpoint(ep.Config.Name); err != nil {
-				// @todo errors here might put things in a bad state
-				log.Println(err)
-			}
-			done.Done()
-		}(ep)
-	}
-	done.Wait()
-
-	log.Printf("All Endpoints Stopped")
+	close(m.ex)
 }
 
 func (m *EndpointManager) reloadEndpoints() {
@@ -169,6 +162,22 @@ func (m *EndpointManager) restartEndpoint(cfg config.EndpointConfig) error {
 		return err
 	}
 	m.eps[cfg.Name] = ep
+	return nil
+}
+
+func (m *EndpointManager) stopAllEndpoints() error {
+	var done sync.WaitGroup
+	for _, ep := range m.eps {
+		done.Add(1)
+		go func(ep *Endpoint) {
+			if err := m.stopEndpoint(ep.Config.Name); err != nil {
+				// @todo errors here might put things in a bad state
+				log.Println(err)
+			}
+			done.Done()
+		}(ep)
+	}
+	done.Wait()
 	return nil
 }
 

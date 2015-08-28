@@ -18,8 +18,8 @@ type EpError struct {
 func New(ch *amqp.Channel, cfg config.EndpointConfig) (*Endpoint, error) {
 
 	ep := &Endpoint{
-		exit:     make(chan bool),
-		exitResp: make(chan bool),
+		exit:     make(chan struct{}),
+		exitResp: make(chan struct{}),
 		ch:       ch,
 		Config:   cfg,
 	}
@@ -29,8 +29,8 @@ func New(ch *amqp.Channel, cfg config.EndpointConfig) (*Endpoint, error) {
 type Endpoint struct {
 	ch       *amqp.Channel
 	Config   config.EndpointConfig
-	exit     chan bool
-	exitResp chan bool
+	exit     chan struct{}
+	exitResp chan struct{}
 }
 
 func (e *Endpoint) start() error {
@@ -53,7 +53,6 @@ func (e *Endpoint) Stop() {
 		recover()
 	}()
 
-	e.exit <- true
 	close(e.exit)
 
 	<-e.exitResp
@@ -103,7 +102,7 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointCon
 	for {
 		select {
 		case <-e.exit:
-			e.exitResp <- true
+			close(e.exitResp)
 			return
 
 		case d, ok := <-msgs:

@@ -42,12 +42,11 @@ func main() {
 		epp = repo
 	}
 
-	cfgWatcher := config.NewWatcher(epp)
-
-	svc := ep.NewManager(ap, cfgWatcher)
+	svc := ep.NewManager(ap, epp)
 	if err := svc.Run(); err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
 
+	log.Println("asdasdasd")
 }
