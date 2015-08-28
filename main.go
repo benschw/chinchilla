@@ -42,7 +42,7 @@ func main() {
 		epp = repo
 	}
 
-	svc := ep.NewManager(ap, epp)
+	svc := ep.NewApp(ap, epp)
 	if err := svc.Run(); err != nil {
 		log.Println(err)
 		os.Exit(1)

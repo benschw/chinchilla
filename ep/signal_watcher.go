@@ -33,6 +33,7 @@ func watchSignals(ex chan struct{}, t chan Trigger) {
 	// main control flow
 	for {
 		select {
+		// when exit chan closes, return
 		case <-ex:
 			return
 		// If a signal is caught, either shutdown or reload gracefully

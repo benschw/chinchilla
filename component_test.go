@@ -31,7 +31,7 @@ func GetPublisher(cfg *config.EndpointConfig) *ex.Publisher {
 	return p
 }
 
-func GetServices() (*ep.EndpointManager, *ex.Server, *ex.Publisher, *ex.Publisher) {
+func GetServices() (*ep.EndpointApp, *ex.Server, *ex.Publisher, *ex.Publisher) {
 	port := uint16(rando.Port())
 
 	server := ex.NewServer(fmt.Sprintf(":%d", port))
@@ -63,7 +63,7 @@ func GetServices() (*ep.EndpointManager, *ex.Server, *ex.Publisher, *ex.Publishe
 		},
 		Endpoints: []config.EndpointConfig{epCfg, epCfg2},
 	}
-	mgr := ep.NewManager(repo, repo)
+	mgr := ep.NewApp(repo, repo)
 	return mgr, server, p, p2
 }
 
