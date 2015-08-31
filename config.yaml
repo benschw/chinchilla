@@ -17,6 +17,7 @@ endpoints:
     servicehost: http://localhost:8080
     uri: /slow
     method: POST
+    prefetch: 5
 disabled:
   -
     name: Bar

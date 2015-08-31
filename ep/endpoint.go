@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/streadway/amqp"
@@ -74,10 +75,14 @@ func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
 		return nil, err
 	}
 
+	prefetch := e.Config.Prefetch
+	if prefetch < 1 {
+		prefetch = 1
+	}
 	err = e.ch.Qos(
-		1,     // prefetch count
-		0,     // prefetch size
-		false, // global
+		prefetch, // prefetch count
+		0,        // prefetch size
+		false,    // global
 	)
 	if err != nil {
 		return nil, err
@@ -99,6 +104,9 @@ func (e *Endpoint) bindToRabbit() (<-chan amqp.Delivery, error) {
 }
 func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointConfig) {
 	defer e.ch.Close()
+
+	var wg sync.WaitGroup
+	defer wg.Wait()
 	for {
 		select {
 		case <-e.exit:
@@ -108,20 +116,21 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointCon
 		case d, ok := <-msgs:
 			if !ok {
 				log.Printf("%s: delivery chan closed", cfg.Name)
-				//e.errs <- EpError{Name: cfg.Name, Err: fmt.Errorf("%s delivery chan was closed unexpectedly", cfg.Name)}
 				close(e.exit)
 				return
 			}
-
-			log.Printf("Received a message on %s: %s", cfg.QueueName, string(d.Body))
-			requeue, err := processMsg(d, cfg)
-			if err != nil {
-				log.Printf("%s: %s", cfg.Name, err)
-				d.Nack(false, requeue)
-			} else {
-				log.Printf("%s: Message Processed", cfg.Name)
-				d.Ack(false)
-			}
+			wg.Add(1)
+			go func(d amqp.Delivery, cfg config.EndpointConfig) {
+				log.Printf("Received a message on %s: %s", cfg.QueueName, string(d.Body))
+				requeue, err := processMsg(d, cfg)
+				if err != nil {
+					log.Printf("%s: %s", cfg.Name, err)
+					d.Nack(false, requeue)
+				} else {
+					log.Printf("%s: Message Processed", cfg.Name)
+					d.Ack(false)
+				}
+			}(d, cfg)
 		}
 	}
 }

@@ -54,7 +54,7 @@ func (h *Handler) Slow(res http.ResponseWriter, req *http.Request) {
 	s := string(bs)
 	log.Printf("HTTP: Slow: '%s'", s)
 
-	time.Sleep(10000 * time.Millisecond)
+	time.Sleep(5000 * time.Millisecond)
 
 	h.addStat("Slow", s)
 	rest.SetOKResponse(res, nil)

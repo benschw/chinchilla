@@ -25,6 +25,7 @@ type EndpointConfig struct {
 	Uri         string `json: "uri"`
 	Method      string `json: "method"`
 	QueueName   string `json: "queuename"`
+	Prefetch    int    `json: "prefetch"`
 }
 
 func (c *EndpointConfig) Equals(cfg EndpointConfig) bool {
