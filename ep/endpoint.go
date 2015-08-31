@@ -106,11 +106,14 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointCon
 	defer e.ch.Close()
 
 	var wg sync.WaitGroup
-	defer wg.Wait()
+	defer func() {
+		wg.Wait()
+		close(e.exitResp)
+	}()
+
 	for {
 		select {
 		case <-e.exit:
-			close(e.exitResp)
 			return
 
 		case d, ok := <-msgs:
@@ -121,7 +124,9 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointCon
 			}
 			wg.Add(1)
 			go func(d amqp.Delivery, cfg config.EndpointConfig) {
+				defer wg.Done()
 				log.Printf("Received a message on %s: %s", cfg.QueueName, string(d.Body))
+
 				requeue, err := processMsg(d, cfg)
 				if err != nil {
 					log.Printf("%s: %s", cfg.Name, err)
