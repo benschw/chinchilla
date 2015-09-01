@@ -18,5 +18,5 @@ install:
   - mv dist /tmp/web-ui
 
 script:
-    - go test ./... -v -t
+  - go test ./... -v -t
   - go build
