@@ -2,6 +2,9 @@
 
 A service which connects to Rabbitmq queues and delivers messages to REST endpoints.
 
+Chinchilla can be configured either with a yaml config, or with consul. In either case, the
+config backend is watched for changes and will live-update your running chinchilla daemon to
+reflect the new configuration.
 
 ### terminal 1
 
@@ -24,7 +27,7 @@ A service which connects to Rabbitmq queues and delivers messages to REST endpoi
 
 ## testing
 
-### Install anc configure Rabbitmq
+### Install and configure Rabbitmq
 
 	sudo aptitude
 
