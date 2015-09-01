@@ -79,6 +79,9 @@ func TestPublish(t *testing.T) {
 	go server.Start()
 	go mgr.Run()
 
+	// wait for queue creation to prevent race condition... do this better
+	time.Sleep(200 * time.Millisecond)
+
 	api := &Msg{Message: "Hello World"}
 	apiB, _ := json.Marshal(api)
 	apiStr := string(apiB)
