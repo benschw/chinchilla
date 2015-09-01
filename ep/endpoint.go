@@ -141,8 +141,12 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointCon
 }
 
 func processMsg(d amqp.Delivery, cfg config.EndpointConfig) (bool, error) {
-	url := cfg.ServiceHost + cfg.Uri
-
+	url, err := cfg.Url()
+	if err != nil {
+		// nack & requeue when there is a problem discovering url
+		return true, err
+	}
+	log.Printf("endpoint-url=%s", url)
 	req, err := http.NewRequest(cfg.Method, url, bytes.NewBuffer(d.Body))
 	if err != nil {
 		// nack & requeue if we can't build a request

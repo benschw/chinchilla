@@ -3,12 +3,14 @@ package config
 import (
 	"log"
 
+	"github.com/benschw/dns-clb-go/clb"
 	"github.com/hashicorp/consul/api"
 	"gopkg.in/yaml.v2"
 )
 
 // Load config from Consul
 type ConsulRepo struct {
+	Lb     clb.LoadBalancer
 	Client *api.Client
 }
 
@@ -28,7 +30,7 @@ func (r *ConsulRepo) GetEndpoints() ([]EndpointConfig, error) {
 			continue
 		}
 
-		epCfg := &EndpointConfig{}
+		epCfg := &EndpointConfig{Lb: r.Lb}
 
 		if err = yaml.Unmarshal(p.Value, epCfg); err != nil {
 			log.Println(err)
@@ -49,5 +51,5 @@ func (r *ConsulRepo) GetAddress() (RabbitAddress, error) {
 		return RabbitAddress{}, err
 	}
 
-	return connectionConfigToAddress(*connCfg)
+	return connectionConfigToAddress(*connCfg, r.Lb)
 }

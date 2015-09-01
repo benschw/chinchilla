@@ -6,6 +6,7 @@
 # unzip 0.5.2_web_ui.zip
 # mv dist /tmp/web-ui
 
+rm -rf /tmp/consul
 ./consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul -ui-dir /tmp/web-ui &
 
 sleep 5
@@ -14,23 +15,19 @@ read -r -d '' CONN_CFG << EOF
 user: guest
 password: guest
 servicename: rabbitmq
-host: localhost
-port: 5672
 EOF
 
 read -r -d '' FOO_CFG << EOF
 name: Foo
 queuename: demo.foo
 servicename: foo
-servicehost: http://localhost:8080
 uri: /foo
 method: POST
 EOF
 
-NODE=$(hostname)
 read -r -d '' RABBIT_SVC << EOF
 {
-  "ID": "$NODE",
+  "ID": "rabbitmq1",
   "Name": "rabbitmq",
   "Address": "127.0.0.1",
   "Port": 5672
@@ -38,7 +35,7 @@ read -r -d '' RABBIT_SVC << EOF
 EOF
 read -r -d '' FOO_SVC << EOF
 {
-  "ID": "$NODE",
+  "ID": "foo1",
   "Name": "foo",
   "Address": "127.0.0.1",
   "Port": 8080

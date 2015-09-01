@@ -8,6 +8,7 @@ import (
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
+	"github.com/benschw/dns-clb-go/clb"
 	"github.com/hashicorp/consul/api"
 )
 
@@ -23,11 +24,14 @@ func main() {
 		}
 	}
 
+	// lb := clb.New()
+	lb := clb.NewClb("127.0.0.1", "8600", clb.RoundRobin)
+
 	var ap config.RabbitAddressProvider
 	var epp config.EndpointsProvider
 
 	if *configPath != "" {
-		repo := &config.YamlRepo{Path: *configPath}
+		repo := &config.YamlRepo{Lb: lb, Path: *configPath}
 
 		ap = repo
 		epp = repo
@@ -37,7 +41,7 @@ func main() {
 			log.Println(err)
 			os.Exit(1)
 		}
-		repo := &config.ConsulRepo{Client: client}
+		repo := &config.ConsulRepo{Lb: lb, Client: client}
 		ap = repo
 		epp = repo
 	}
