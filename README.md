@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/benschw/chinchilla.svg?branch=master)](https://travis-ci.org/benschw/chinchilla)
+
+
 # Chinchilla
 
 A service which connects to Rabbitmq queues and delivers messages to REST endpoints.
