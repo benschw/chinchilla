@@ -6,7 +6,6 @@
 # unzip 0.5.2_web_ui.zip
 # mv dist /tmp/web-ui
 
-rm -rf /tmp/consul
 ./consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul -ui-dir /tmp/web-ui &
 
 sleep 5
