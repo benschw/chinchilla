@@ -10,6 +10,7 @@ import (
 
 // Load config from Consul
 type ConsulRepo struct {
+	Kr     []byte
 	Lb     clb.LoadBalancer
 	Client *api.Client
 }
@@ -50,6 +51,5 @@ func (r *ConsulRepo) GetAddress() (RabbitAddress, error) {
 	if err = yaml.Unmarshal(p.Value, connCfg); err != nil {
 		return RabbitAddress{}, err
 	}
-
-	return connectionConfigToAddress(*connCfg, r.Lb)
+	return connectionConfigToAddress(r.Kr, *connCfg, r.Lb)
 }

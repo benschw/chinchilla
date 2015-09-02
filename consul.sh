@@ -10,9 +10,12 @@
 
 sleep 5
 
+USER=$(./chinchilla -keyring ./test-keys/.pubring.gpg encrypt guest)
+PASS=$(./chinchilla -keyring ./test-keys/.pubring.gpg encrypt guest)
+
 read -r -d '' CONN_CFG << EOF
-user: guest
-password: guest
+user: $USER
+password: $PASS
 servicename: rabbitmq
 EOF
 

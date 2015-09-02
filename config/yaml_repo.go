@@ -7,6 +7,7 @@ import (
 
 // Load Config from a yaml file on disk
 type YamlRepo struct {
+	Kr   []byte
 	Lb   clb.LoadBalancer
 	Path string
 }
@@ -31,5 +32,5 @@ func (r *YamlRepo) GetAddress() (RabbitAddress, error) {
 	if err := config.Bind(r.Path, &cfg); err != nil {
 		return RabbitAddress{}, err
 	}
-	return connectionConfigToAddress(cfg.Connection, r.Lb)
+	return connectionConfigToAddress(r.Kr, cfg.Connection, r.Lb)
 }
