@@ -32,6 +32,7 @@ type EndpointConfig struct {
 	Method      string `json: "method"`
 	QueueName   string `json: "queuename"`
 	Prefetch    int    `json: "prefetch"`
+	QueueType   string `json: "queuetype"`
 }
 
 func (c *EndpointConfig) Equals(cfg EndpointConfig) bool {

@@ -8,11 +8,13 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func NewApp(ap config.RabbitAddressProvider, epp config.EndpointsProvider) *EndpointApp {
+// qReg := NewQueueRegistry()
+// qReg.Add(qReg.DefaultWorker, &queue.Queue{C: *queue.MsgConsumer{}, D: *queue.MsgDeliverer{}})
+func NewApp(ap config.RabbitAddressProvider, epp config.EndpointsProvider, qReg *QueueRegistry) *EndpointApp {
 	return &EndpointApp{
 		ap:        ap,
 		epp:       epp,
-		eps:       NewEndpointMgr(),
+		eps:       NewEndpointMgr(qReg),
 		ttl:       5,
 		connRetry: 2,
 		ex:        make(chan struct{}, 1),

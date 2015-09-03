@@ -8,6 +8,7 @@ import (
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
+	"github.com/benschw/chinchilla/ep/queue"
 	"github.com/benschw/dns-clb-go/clb"
 	"github.com/hashicorp/consul/api"
 	"github.com/xordataexchange/crypt/encoding/secconf"
@@ -80,6 +81,9 @@ func StartDaemon(configPath string, sKPath string) error {
 		epp = repo
 	}
 
-	svc := ep.NewApp(ap, epp)
+	qReg := ep.NewQueueRegistry()
+	qReg.Add(qReg.DefaultKey, &queue.Queue{C: &queue.DefaultWorker{}, D: &queue.DefaultDeliverer{}})
+
+	svc := ep.NewApp(ap, epp, qReg)
 	return svc.Run()
 }
