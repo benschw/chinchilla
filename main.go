@@ -6,9 +6,20 @@ import (
 	"log"
 	"log/syslog"
 	"os"
+
+	"github.com/benschw/chinchilla/ep"
+	"github.com/benschw/chinchilla/queue"
 )
 
+var useSyslog = flag.Bool("syslog", false, "log to syslog")
+var configPath = flag.String("config", "", "path to yaml config. omit to use consul")
+var keyring = flag.String("keyring", "", "path to armored public keyring")
+var secretKeyring = flag.String("secret-keyring", "", "path to armored secret keyring")
+
+var queueReg = ep.NewQueueRegistry()
+
 func init() {
+	queueReg.Add(queueReg.DefaultKey, &queue.Queue{C: &queue.DefaultWorker{}, D: &queue.DefaultDeliverer{}})
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [FLAGS] [SUBCOMMAND]\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "\n")
@@ -37,10 +48,6 @@ func init() {
 
 func main() {
 
-	useSyslog := flag.Bool("syslog", false, "log to syslog")
-	configPath := flag.String("config", "", "path to yaml config. omit to use consul")
-	keyring := flag.String("keyring", "", "path to armored public keyring")
-	secretKeyring := flag.String("secret-keyring", "", "path to armored secret keyring")
 	flag.Parse()
 
 	if *useSyslog {
@@ -49,9 +56,10 @@ func main() {
 			log.SetOutput(logwriter)
 		}
 	}
+
 	if flag.NArg() == 0 {
 		// If no subcommands, run daemon
-		if err := StartDaemon(*configPath, *secretKeyring); err != nil {
+		if err := StartDaemon(*configPath, *secretKeyring, queueReg); err != nil {
 			log.Println(err)
 		}
 		os.Exit(1)
@@ -64,7 +72,25 @@ func main() {
 		cmd := flag.Arg(0)
 		in := flag.Arg(1)
 
-		out, err := DoCryptUtil(cmd, in, *keyring, *secretKeyring)
+		var out string
+		var err error
+		switch cmd {
+		case "encrypt":
+			if *keyring == "" {
+				err = fmt.Errorf("-keyring requred to encrypt")
+			} else {
+				out, err = Encrypt(*keyring, in)
+			}
+		case "decrypt":
+			if *secretKeyring == "" {
+				err = fmt.Errorf("-secret-keyring requred to decrypt")
+			} else {
+				out, err = Decrypt(*secretKeyring, in)
+			}
+		default:
+			err = fmt.Errorf("Invalid Subcommand: %s", cmd)
+		}
+
 		if err != nil {
 			fmt.Println(err)
 			flag.Usage()

@@ -10,8 +10,8 @@ import (
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
-	"github.com/benschw/chinchilla/ep/queue"
 	"github.com/benschw/chinchilla/example/ex"
+	"github.com/benschw/chinchilla/queue"
 	"github.com/benschw/opin-go/rando"
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"

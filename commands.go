@@ -1,35 +1,18 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
-	"github.com/benschw/chinchilla/queue"
 	"github.com/benschw/dns-clb-go/clb"
 	"github.com/hashicorp/consul/api"
 	"github.com/xordataexchange/crypt/encoding/secconf"
 )
 
-func DoCryptUtil(cmd string, in string, keyring string, secretKeyring string) (string, error) {
-	switch cmd {
-	case "encrypt":
-		if keyring == "" {
-			return "", fmt.Errorf("-keyring requred to encrypt")
-		}
-		return encrypt(keyring, in)
-	case "decrypt":
-		if keyring == "" {
-			return "", fmt.Errorf("-secret-keyring requred to decrypt")
-		}
-		return decrypt(secretKeyring, in)
-	}
-	return "", fmt.Errorf("Invalid Subcommand: %s", cmd)
-}
-func encrypt(kPath string, in string) (string, error) {
+func Encrypt(kPath string, in string) (string, error) {
 	kr, err := os.Open(kPath)
 	if err != nil {
 		return "", err
@@ -37,7 +20,7 @@ func encrypt(kPath string, in string) (string, error) {
 	bytes, err := secconf.Encode([]byte(in), kr)
 	return string(bytes[:]), nil
 }
-func decrypt(sKPath string, encrypted string) (string, error) {
+func Decrypt(sKPath string, encrypted string) (string, error) {
 	kr, err := os.Open(sKPath)
 	if err != nil {
 		return "", err
@@ -45,7 +28,7 @@ func decrypt(sKPath string, encrypted string) (string, error) {
 	bytes, err := secconf.Decode([]byte(encrypted), kr)
 	return string(bytes[:]), nil
 }
-func StartDaemon(configPath string, sKPath string) error {
+func StartDaemon(configPath string, sKPath string, qReg *ep.QueueRegistry) error {
 
 	var kr []byte
 	if sKPath != "" {
@@ -80,9 +63,6 @@ func StartDaemon(configPath string, sKPath string) error {
 		ap = repo
 		epp = repo
 	}
-
-	qReg := ep.NewQueueRegistry()
-	qReg.Add(qReg.DefaultKey, &queue.Queue{C: &queue.DefaultWorker{}, D: &queue.DefaultDeliverer{}})
 
 	svc := ep.NewApp(ap, epp, qReg)
 	return svc.Run()

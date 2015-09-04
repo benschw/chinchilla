@@ -14,8 +14,8 @@ func TestEncryption(t *testing.T) {
 	in := "Secret Data"
 
 	// when
-	encrypted, err1 := encrypt(keyringPath, in)
-	decrypted, err2 := decrypt(secretKeyringPath, encrypted)
+	encrypted, err1 := Encrypt(keyringPath, in)
+	decrypted, err2 := Decrypt(secretKeyringPath, encrypted)
 
 	// then
 	assert.Nil(t, err1, "err should be nil")
