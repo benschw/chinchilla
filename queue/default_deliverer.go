@@ -14,7 +14,11 @@ type DefaultDeliverer struct {
 }
 
 func (p *DefaultDeliverer) Deliver(d amqp.Delivery, cfg config.EndpointConfig) {
-	log.Printf("Received a message on %s: %s", cfg.QueueName, string(d.Body))
+	queueName, ok := cfg.QueueConfig["queuename"].(string)
+	if !ok {
+		queueName = "(unknown)"
+	}
+	log.Printf("Received a message on %s: %s", queueName, string(d.Body))
 	requeue, err := processMsg(d, cfg)
 	if err != nil {
 		log.Printf("%s: %s", cfg.Name, err)

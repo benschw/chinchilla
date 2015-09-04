@@ -1,6 +1,8 @@
 package queue
 
 import (
+	"fmt"
+
 	"github.com/benschw/chinchilla/config"
 	"github.com/streadway/amqp"
 )
@@ -9,22 +11,31 @@ type DefaultWorker struct {
 }
 
 func (d *DefaultWorker) Consume(ch *amqp.Channel, cfg config.EndpointConfig) (<-chan amqp.Delivery, error) {
+	queueName, ok := cfg.QueueConfig["queuename"].(string)
+	if !ok {
+		return nil, fmt.Errorf("unable to parse queuename from config")
+	}
+
+	prefetch, ok := cfg.QueueConfig["prefetch"].(int)
+	if !ok {
+		return nil, fmt.Errorf("unable to parse prefetch from config")
+	}
+	if prefetch < 1 {
+		prefetch = 1
+	}
+
 	q, err := ch.QueueDeclare(
-		cfg.QueueName, // name
-		true,          // durable
-		false,         // delete when unused
-		false,         // exclusive
-		false,         // no-wait
-		nil,           // arguments
+		queueName, // name
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	prefetch := cfg.Prefetch
-	if prefetch < 1 {
-		prefetch = 1
-	}
 	err = ch.Qos(
 		prefetch, // prefetch count
 		0,        // prefetch size

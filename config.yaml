@@ -7,33 +7,38 @@ connection:
 endpoints:
   -
     name: Foo
-    queuename: demo.foo
     servicehost: http://localhost:8080
     uri: /foo
     method: POST
+    queueconfig:
+      queuename: demo.foo
   -
     name: Slow 
-    queuename: demo.slow
     servicehost: http://localhost:8080
     uri: /slow
     method: POST
-    prefetch: 5
+    queueconfig:
+      prefetch: 5
+      queuename: demo.slow
 disabled:
   -
     name: Bar
-    queuename: demo.bar
     servicehost: http://localhost:8080
     uri: /bar
     method: POST
+    queueconfig:
+      queuename: demo.bar
   -
     name: Bad 
-    queuename: demo.bad
     servicehost: http://localhost:8080
     uri: /bad
     method: POST
+    queueconfig:
+      queuename: demo.bad
   -
     name: RealBad 
-    queuename: demo.realbad
     servicehost: http://localhost:9876
     uri: /dneaddy
     method: POST
+    queueconfig:
+      queuename: demo.realbad

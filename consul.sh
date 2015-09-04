@@ -21,10 +21,12 @@ EOF
 
 read -r -d '' FOO_CFG << EOF
 name: Foo
-queuename: demo.foo
 servicename: foo
 uri: /foo
 method: POST
+queueconfig:
+  prefetch: 5
+  queuename: demo.foo
 EOF
 
 read -r -d '' RABBIT_SVC << EOF

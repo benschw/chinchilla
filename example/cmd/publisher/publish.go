@@ -34,8 +34,10 @@ func main() {
 	p := &ex.Publisher{
 		Conn: conn,
 		Config: &config.EndpointConfig{
-			Name:      "TestEndpoint",
-			QueueName: *queueName,
+			Name: "TestEndpoint",
+			QueueConfig: map[interface{}]interface{}{
+				"queuename": *queueName,
+			},
 		},
 	}
 	var done sync.WaitGroup

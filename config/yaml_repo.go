@@ -22,7 +22,6 @@ func (r *YamlRepo) GetEndpoints() ([]EndpointConfig, error) {
 	for i, _ := range cfg.Endpoints {
 		cfg.Endpoints[i].Lb = r.Lb
 	}
-
 	return cfg.Endpoints, nil
 }
 

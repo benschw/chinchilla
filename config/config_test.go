@@ -13,10 +13,12 @@ func TestConfigManagerStartup(t *testing.T) {
 	// setup
 	epCfg := EndpointConfig{
 		Name:        "Foo",
-		QueueName:   "test.foo",
 		ServiceHost: "http://localhost:8080",
 		Uri:         "/foo",
 		Method:      "POST",
+		QueueConfig: map[interface{}]interface{}{
+			"queuename": "test.foo",
+		},
 	}
 	cfgMgr := NewWatcher(&StaticRepo{Endpoints: []EndpointConfig{epCfg}}, 5)
 
@@ -32,10 +34,12 @@ func TestConfigManagerChange(t *testing.T) {
 	// setup
 	epCfg := EndpointConfig{
 		Name:        "Foo",
-		QueueName:   "test.foo",
 		ServiceHost: "http://localhost:8080",
 		Uri:         "/foo",
 		Method:      "POST",
+		QueueConfig: map[interface{}]interface{}{
+			"queuename": "test.foo",
+		},
 	}
 	provider := &StaticRepo{Endpoints: []EndpointConfig{epCfg}}
 	cfgMgr := NewWatcher(provider, 5)

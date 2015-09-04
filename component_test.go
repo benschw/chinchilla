@@ -45,17 +45,21 @@ func GetServices() (*ep.EndpointApp, *ex.Server, *ex.Publisher, *ex.Publisher) {
 
 	epCfg := config.EndpointConfig{
 		Name:        "Foo",
-		QueueName:   "test.foo",
 		ServiceHost: fmt.Sprintf("http://localhost:%d", port),
 		Uri:         "/foo",
 		Method:      "POST",
+		QueueConfig: map[interface{}]interface{}{
+			"queuename": "test.foo",
+		},
 	}
 	epCfg2 := config.EndpointConfig{
 		Name:        "Bar",
-		QueueName:   "test.bar",
 		ServiceHost: fmt.Sprintf("http://localhost:%d", port),
 		Uri:         "/bar",
 		Method:      "POST",
+		QueueConfig: map[interface{}]interface{}{
+			"queuename": "test.bar",
+		},
 	}
 
 	p := GetPublisher(&epCfg)
