@@ -17,10 +17,7 @@ func (d *DefaultWorker) Consume(ch *amqp.Channel, cfg config.EndpointConfig) (<-
 	}
 
 	prefetch, ok := cfg.QueueConfig["prefetch"].(int)
-	if !ok {
-		return nil, fmt.Errorf("unable to parse prefetch from config")
-	}
-	if prefetch < 1 {
+	if !ok || prefetch < 1 {
 		prefetch = 1
 	}
 
