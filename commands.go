@@ -8,7 +8,7 @@ import (
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
-	"github.com/benschw/chinchilla/ep/queue"
+	"github.com/benschw/chinchilla/queue"
 	"github.com/benschw/dns-clb-go/clb"
 	"github.com/hashicorp/consul/api"
 	"github.com/xordataexchange/crypt/encoding/secconf"
