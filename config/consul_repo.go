@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/benschw/dns-clb-go/clb"
@@ -44,10 +45,15 @@ func (r *ConsulRepo) GetEndpoints() ([]EndpointConfig, error) {
 
 func (r *ConsulRepo) GetAddress() (RabbitAddress, error) {
 	kv := r.Client.KV()
-
-	p, _, err := kv.Get("chinchilla/connection.yaml", nil)
+	k := "chinchilla/connection.yaml"
+	p, _, err := kv.Get(k, nil)
 	connCfg := &ConnectionConfig{}
-
+	if err != nil {
+		return RabbitAddress{}, err
+	}
+	if p == nil {
+		return RabbitAddress{}, fmt.Errorf("connection settings not found in consul: '%s'", k)
+	}
 	if err = yaml.Unmarshal(p.Value, connCfg); err != nil {
 		return RabbitAddress{}, err
 	}

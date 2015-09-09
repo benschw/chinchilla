@@ -92,7 +92,7 @@ func main() {
 		}
 
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			flag.Usage()
 			os.Exit(1)
 		}
