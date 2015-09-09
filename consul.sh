@@ -16,6 +16,7 @@ PASS=$(./chinchilla -keyring ./test-keys/.pubring.gpg encrypt guest)
 read -r -d '' CONN_CFG << EOF
 user: $USER
 password: $PASS
+vhost: /
 servicename: rabbitmq
 EOF
 

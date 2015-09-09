@@ -21,6 +21,7 @@ type ConnectionConfig struct {
 	ServiceName string `json: "servicename"`
 	Host        string `json: "host"`
 	Port        uint16 `json: "port"`
+	VHost       string `json: "vhost"`
 }
 
 type EndpointConfig struct {
@@ -61,6 +62,7 @@ type RabbitAddress struct {
 	Password string
 	Host     string
 	Port     uint16
+	VHost    string
 }
 
 func (a *RabbitAddress) String() string {
@@ -84,7 +86,7 @@ func (a *RabbitAddress) String() string {
 	} else {
 		log.Println("No keyring supplied, treating rabbitmq credentials as plain text")
 	}
-	connStr := fmt.Sprintf("amqp://%s:%s@%s:%d/", user, pass, a.Host, a.Port)
+	connStr := fmt.Sprintf("amqp://%s:%s@%s:%d%s", user, pass, a.Host, a.Port, a.VHost)
 	return connStr
 }
 
@@ -96,6 +98,7 @@ func connectionConfigToAddress(kr []byte, c ConnectionConfig, lb clb.LoadBalance
 		Password: c.Password,
 		Host:     c.Host,
 		Port:     c.Port,
+		VHost:    c.VHost,
 	}
 
 	if c.ServiceName != "" {
