@@ -86,7 +86,7 @@ func (a *RabbitAddress) String() string {
 	} else {
 		log.Println("No keyring supplied, treating rabbitmq credentials as plain text")
 	}
-	connStr := fmt.Sprintf("amqp://%s:%s@%s:%d%s", user, pass, a.Host, a.Port, a.VHost)
+	connStr := fmt.Sprintf("amqp://%s:%s@%s:%d/%s", user, pass, a.Host, a.Port, a.VHost)
 	return connStr
 }
 

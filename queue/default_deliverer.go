@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/streadway/amqp"
@@ -43,7 +44,12 @@ func processMsg(d amqp.Delivery, cfg config.EndpointConfig) (bool, error) {
 	}
 	req.Header.Set("Content-Type", d.ContentType)
 
-	r, err := http.DefaultClient.Do(req)
+	timeout := time.Duration(60 * time.Second)
+	client := http.Client{
+		Timeout: timeout,
+	}
+
+	r, err := client.Do(req)
 	if err != nil {
 		// nack & requeue if request errors out
 		return true, err
