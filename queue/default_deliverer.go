@@ -31,6 +31,11 @@ func (p *DefaultDeliverer) Deliver(d amqp.Delivery, cfg config.EndpointConfig) {
 }
 
 func processMsg(d amqp.Delivery, cfg config.EndpointConfig) (bool, error) {
+	timeoutSec, ok := cfg.QueueConfig["timeout"].(int)
+	if !ok {
+		timeoutSec = 60
+	}
+
 	url, err := cfg.Url()
 	if err != nil {
 		// nack & requeue when there is a problem discovering url
@@ -44,7 +49,7 @@ func processMsg(d amqp.Delivery, cfg config.EndpointConfig) (bool, error) {
 	}
 	req.Header.Set("Content-Type", d.ContentType)
 
-	timeout := time.Duration(60 * time.Second)
+	timeout := time.Duration(time.Duration(timeoutSec) * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}
