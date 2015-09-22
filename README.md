@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/benschw/chinchilla.svg?branch=master)](https://travis-ci.org/benschw/chinchilla)
-
+[Download](https://drone.io/github.com/benschw/chinchilla/files/chinchilla.gz)
 
 # Chinchilla
 
