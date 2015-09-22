@@ -14,6 +14,14 @@ endpoints:
     queueconfig:
       queuename: demo.foo
   -
+    name: Test
+    servicehost: http://hub-billing.fliglio
+    uri: /test-endpoint
+    method: GET
+    queueconfig:
+      prefetch: 5
+      queuename: froi.hub.billing.fi
+  -
     name: Slow 
     servicehost: http://localhost:8080
     uri: /slow

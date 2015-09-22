@@ -12,6 +12,7 @@ import (
 )
 
 var useSyslog = flag.Bool("syslog", false, "log to syslog")
+var logPath = flag.String("log-path", "", "path to log file")
 var configPath = flag.String("config", "", "path to yaml config. omit to use consul")
 var keyring = flag.String("keyring", "", "path to armored public keyring")
 var secretKeyring = flag.String("secret-keyring", "", "path to armored secret keyring")
@@ -54,6 +55,11 @@ func main() {
 		logwriter, err := syslog.New(syslog.LOG_NOTICE, "chinchilla")
 		if err == nil {
 			log.SetOutput(logwriter)
+		}
+	} else if *logPath != "" {
+		file, err := os.OpenFile(*logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err == nil {
+			log.SetOutput(file)
 		}
 	}
 
