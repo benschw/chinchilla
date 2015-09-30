@@ -68,7 +68,6 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointCon
 		wg.Wait()
 		close(e.exitResp)
 	}()
-	h := metrics.NewHistogram(epMetricName(cfg.Name, "processing-time"), 0, 300, 4)
 	for {
 		select {
 		case <-e.exit:
@@ -87,7 +86,7 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointCon
 				metrics.Counter(epMetricName(e.Config.Name, "deliver-msg")).AddN(1)
 				e.Deliverer.Deliver(d, cfg)
 				stop := time.Now()
-				h.RecordValue(int64(stop.Sub(start).Seconds()))
+				RecordDeliveryTime(cfg.Name, stop.Sub(start))
 
 			}(d, cfg)
 		}

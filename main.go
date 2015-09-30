@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"log/syslog"
+	"net"
+	"net/http"
 	"os"
 
 	_ "expvar"
@@ -15,6 +17,7 @@ import (
 
 var useSyslog = flag.Bool("syslog", false, "log to syslog")
 var logPath = flag.String("log-path", "", "path to log file")
+var metricsBind = flag.String("metrics", ":8081", "address to bind metrics to")
 var configPath = flag.String("config", "", "path to yaml config. omit to use consul")
 var consulPath = flag.String("consul-path", "chinchilla", "consul key path to find configuration in")
 var keyring = flag.String("keyring", "", "path to armored public keyring")
@@ -65,6 +68,16 @@ func main() {
 			log.SetOutput(file)
 		}
 	}
+
+	sock, err := net.Listen("tcp", *metricsBind)
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+	go func() {
+		fmt.Println("HTTP now available at port 8123")
+		http.Serve(sock, nil)
+	}()
 
 	if flag.NArg() == 0 {
 		// If no subcommands, run daemon
