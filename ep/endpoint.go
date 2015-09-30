@@ -3,8 +3,10 @@ package ep
 import (
 	"log"
 	"sync"
+	"time"
 
 	"github.com/benschw/chinchilla/config"
+	"github.com/codahale/metrics"
 	"github.com/streadway/amqp"
 )
 
@@ -31,6 +33,7 @@ type Endpoint struct {
 }
 
 func (e *Endpoint) start() error {
+	metrics.Counter(epMetricName(e.Config.Name, "start")).AddN(1)
 	log.Printf("%s: Starting Endpoint", e.Config.Name)
 	msgs, err := e.Consumer.Consume(e.ch, e.Config)
 	if err != nil {
@@ -65,7 +68,7 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointCon
 		wg.Wait()
 		close(e.exitResp)
 	}()
-
+	h := metrics.NewHistogram(epMetricName(cfg.Name, "processing-time"), 0, 300, 4)
 	for {
 		select {
 		case <-e.exit:
@@ -80,7 +83,12 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointCon
 			wg.Add(1)
 			go func(d amqp.Delivery, cfg config.EndpointConfig) {
 				defer wg.Done()
+				start := time.Now()
+				metrics.Counter(epMetricName(e.Config.Name, "deliver-msg")).AddN(1)
 				e.Deliverer.Deliver(d, cfg)
+				stop := time.Now()
+				h.RecordValue(int64(stop.Sub(start).Seconds()))
+
 			}(d, cfg)
 		}
 	}

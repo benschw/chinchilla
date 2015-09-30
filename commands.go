@@ -28,7 +28,7 @@ func Decrypt(sKPath string, encrypted string) (string, error) {
 	bytes, err := secconf.Decode([]byte(encrypted), kr)
 	return string(bytes[:]), nil
 }
-func StartDaemon(configPath string, sKPath string, qReg *ep.QueueRegistry) error {
+func StartDaemon(configPath string, consulPath string, sKPath string, qReg *ep.QueueRegistry) error {
 
 	var kr []byte
 	if sKPath != "" {
@@ -59,7 +59,7 @@ func StartDaemon(configPath string, sKPath string, qReg *ep.QueueRegistry) error
 			log.Println(err)
 			os.Exit(1)
 		}
-		repo := &config.ConsulRepo{Kr: kr, Lb: lb, Client: client}
+		repo := &config.ConsulRepo{ConsulPath: consulPath, Kr: kr, Lb: lb, Client: client}
 		ap = repo
 		epp = repo
 	}

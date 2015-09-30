@@ -11,15 +11,16 @@ import (
 
 // Load config from Consul
 type ConsulRepo struct {
-	Kr     []byte
-	Lb     clb.LoadBalancer
-	Client *api.Client
+	Kr         []byte
+	Lb         clb.LoadBalancer
+	Client     *api.Client
+	ConsulPath string
 }
 
 func (r *ConsulRepo) GetEndpoints() ([]EndpointConfig, error) {
 	arr := make([]EndpointConfig, 0)
 
-	root := "chinchilla/endpoints/"
+	root := r.ConsulPath + "/endpoints/"
 	kv := r.Client.KV()
 
 	results, _, err := kv.List(root, nil)
@@ -45,7 +46,7 @@ func (r *ConsulRepo) GetEndpoints() ([]EndpointConfig, error) {
 
 func (r *ConsulRepo) GetAddress() (RabbitAddress, error) {
 	kv := r.Client.KV()
-	k := "chinchilla/connection.yaml"
+	k := r.ConsulPath + "/connection.yaml"
 	p, _, err := kv.Get(k, nil)
 	connCfg := &ConnectionConfig{}
 	if err != nil {

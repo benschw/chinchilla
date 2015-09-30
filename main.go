@@ -7,12 +7,15 @@ import (
 	"log/syslog"
 	"os"
 
+	_ "expvar"
+
 	"github.com/benschw/chinchilla/ep"
 	"github.com/benschw/chinchilla/queue"
 )
 
 var useSyslog = flag.Bool("syslog", false, "log to syslog")
 var configPath = flag.String("config", "", "path to yaml config. omit to use consul")
+var consulPath = flag.String("consul-path", "chinchilla", "consul key path to find configuration in")
 var keyring = flag.String("keyring", "", "path to armored public keyring")
 var secretKeyring = flag.String("secret-keyring", "", "path to armored secret keyring")
 
@@ -59,7 +62,7 @@ func main() {
 
 	if flag.NArg() == 0 {
 		// If no subcommands, run daemon
-		if err := StartDaemon(*configPath, *secretKeyring, queueReg); err != nil {
+		if err := StartDaemon(*configPath, *consulPath, *secretKeyring, queueReg); err != nil {
 			log.Println(err)
 		}
 		os.Exit(1)
