@@ -1,14 +1,14 @@
 package config
 
 import (
-	"github.com/benschw/dns-clb-go/clb"
 	"github.com/benschw/opin-go/config"
+	"github.com/benschw/srv-lb/srvlb"
 )
 
 // Load Config from a yaml file on disk
 type YamlRepo struct {
 	Kr   []byte
-	Lb   clb.LoadBalancer
+	Lb   srvlb.SRVLoadBalancerDriver
 	Path string
 }
 

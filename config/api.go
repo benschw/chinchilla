@@ -6,7 +6,7 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/benschw/dns-clb-go/clb"
+	"github.com/benschw/srv-lb/srvlb"
 	"github.com/xordataexchange/crypt/encoding/secconf"
 )
 
@@ -25,7 +25,7 @@ type ConnectionConfig struct {
 }
 
 type EndpointConfig struct {
-	Lb          clb.LoadBalancer
+	Lb          srvlb.SRVLoadBalancerDriver
 	Name        string                      `json: "name"`
 	ServiceHost string                      `json: "servicehost"`
 	ServiceName string                      `json: "servicename"`
@@ -46,7 +46,7 @@ func (c *EndpointConfig) Url() (string, error) {
 	if c.ServiceName != "" {
 		srvName := fmt.Sprintf("%s.service.consul", c.ServiceName)
 
-		a, err := c.Lb.GetAddress(srvName)
+		a, err := c.Lb.Next(srvName)
 		if err != nil {
 			return "", err
 		}
@@ -91,7 +91,7 @@ func (a *RabbitAddress) String() string {
 }
 
 // repo helper
-func connectionConfigToAddress(kr []byte, c ConnectionConfig, lb clb.LoadBalancer) (RabbitAddress, error) {
+func connectionConfigToAddress(kr []byte, c ConnectionConfig, lb srvlb.SRVLoadBalancerDriver) (RabbitAddress, error) {
 	add := RabbitAddress{
 		KeyRing:  kr,
 		User:     c.User,
@@ -102,7 +102,7 @@ func connectionConfigToAddress(kr []byte, c ConnectionConfig, lb clb.LoadBalance
 	}
 
 	if c.ServiceName != "" {
-		a, err := lb.GetAddress("rabbitmq.service.consul")
+		a, err := lb.Next("rabbitmq.service.consul")
 		if err != nil {
 			return add, err
 		}

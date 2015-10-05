@@ -17,7 +17,7 @@ reflect the new configuration.
 
 ### terminal 2
 
-	./chinchilla
+	 SRVLB_HOST=127.0.0.1:8600 ./chinchilla
 
 
 ### terminal 3
