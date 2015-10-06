@@ -2,13 +2,13 @@ package config
 
 import (
 	"github.com/benschw/opin-go/config"
-	"github.com/benschw/srv-lb/srvlb"
+	"github.com/benschw/srv-lb/lb"
 )
 
 // Load Config from a yaml file on disk
 type YamlRepo struct {
 	Kr   []byte
-	Lb   srvlb.SRVLoadBalancerDriver
+	Lb   lb.GenericLoadBalancer
 	Path string
 }
 

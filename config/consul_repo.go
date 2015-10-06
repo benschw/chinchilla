@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/benschw/srv-lb/srvlb"
+	"github.com/benschw/srv-lb/lb"
 	"github.com/hashicorp/consul/api"
 	"gopkg.in/yaml.v2"
 )
@@ -12,7 +12,7 @@ import (
 // Load config from Consul
 type ConsulRepo struct {
 	Kr         []byte
-	Lb         srvlb.SRVLoadBalancerDriver
+	Lb         lb.GenericLoadBalancer
 	Client     *api.Client
 	ConsulPath string
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
-	"github.com/benschw/srv-lb/srvlb"
+	"github.com/benschw/srv-lb/lb"
 	"github.com/hashicorp/consul/api"
 	"github.com/xordataexchange/crypt/encoding/secconf"
 )
@@ -44,7 +44,7 @@ func StartDaemon(configPath string, consulPath string, sKPath string, qReg *ep.Q
 	}
 	// lb := clb.New()
 	// lb := clb.NewClb("127.0.0.1", "8600", clb.RoundRobin)
-	lb := srvlb.NewDriver(srvlb.DefaultConfig())
+	lb := lb.NewGeneric(lb.DefaultConfig())
 
 	var ap config.RabbitAddressProvider
 	var epp config.EndpointsProvider

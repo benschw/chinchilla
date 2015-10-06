@@ -6,7 +6,7 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/benschw/srv-lb/srvlb"
+	"github.com/benschw/srv-lb/lb"
 	"github.com/xordataexchange/crypt/encoding/secconf"
 )
 
@@ -25,7 +25,7 @@ type ConnectionConfig struct {
 }
 
 type EndpointConfig struct {
-	Lb          srvlb.SRVLoadBalancerDriver
+	Lb          lb.GenericLoadBalancer
 	Name        string                      `json: "name"`
 	ServiceHost string                      `json: "servicehost"`
 	ServiceName string                      `json: "servicename"`
@@ -91,7 +91,7 @@ func (a *RabbitAddress) String() string {
 }
 
 // repo helper
-func connectionConfigToAddress(kr []byte, c ConnectionConfig, lb srvlb.SRVLoadBalancerDriver) (RabbitAddress, error) {
+func connectionConfigToAddress(kr []byte, c ConnectionConfig, lb lb.GenericLoadBalancer) (RabbitAddress, error) {
 	add := RabbitAddress{
 		KeyRing:  kr,
 		User:     c.User,
