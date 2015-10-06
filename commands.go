@@ -42,8 +42,6 @@ func StartDaemon(configPath string, consulPath string, sKPath string, qReg *ep.Q
 		}
 		kr = bytes
 	}
-	// lb := clb.New()
-	// lb := clb.NewClb("127.0.0.1", "8600", clb.RoundRobin)
 	lb := lb.NewGeneric(lb.DefaultConfig())
 
 	var ap config.RabbitAddressProvider

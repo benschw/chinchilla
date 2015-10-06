@@ -75,7 +75,6 @@ func main() {
 		os.Exit(1)
 	}
 	go func() {
-		fmt.Println("HTTP now available at port 8123")
 		http.Serve(sock, nil)
 	}()
 

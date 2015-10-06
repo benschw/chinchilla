@@ -36,7 +36,7 @@ func (r *ConsulRepo) GetEndpoints() ([]EndpointConfig, error) {
 		epCfg := &EndpointConfig{Lb: r.Lb}
 
 		if err = yaml.Unmarshal(p.Value, epCfg); err != nil {
-			log.Println(err)
+			log.Printf("Error Unmarshaling EP Config: %s", err)
 			continue
 		}
 		arr = append(arr, *epCfg)
@@ -56,7 +56,7 @@ func (r *ConsulRepo) GetAddress() (RabbitAddress, error) {
 		return RabbitAddress{}, fmt.Errorf("connection settings not found in consul: '%s'", k)
 	}
 	if err = yaml.Unmarshal(p.Value, connCfg); err != nil {
-		return RabbitAddress{}, err
+		return RabbitAddress{}, fmt.Errorf("Error unmarshaling: %s", err) //err
 	}
 	return connectionConfigToAddress(r.Kr, *connCfg, r.Lb)
 }
