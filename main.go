@@ -10,9 +10,6 @@ import (
 	"os"
 
 	_ "expvar"
-
-	"github.com/benschw/chinchilla/ep"
-	"github.com/benschw/chinchilla/queue"
 )
 
 var useSyslog = flag.Bool("syslog", false, "log to syslog")
@@ -23,10 +20,8 @@ var consulPath = flag.String("consul-path", "chinchilla", "consul key path to fi
 var keyring = flag.String("keyring", "", "path to armored public keyring")
 var secretKeyring = flag.String("secret-keyring", "", "path to armored secret keyring")
 
-var queueReg = ep.NewQueueRegistry()
-
 func init() {
-	queueReg.Add(queueReg.DefaultKey, &queue.Queue{C: &queue.DefaultWorker{}, D: &queue.DefaultDeliverer{}})
+
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [FLAGS] [SUBCOMMAND]\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "\n")
@@ -80,7 +75,7 @@ func main() {
 
 	if flag.NArg() == 0 {
 		// If no subcommands, run daemon
-		if err := StartDaemon(*configPath, *consulPath, *secretKeyring, queueReg); err != nil {
+		if err := StartDaemon(*configPath, *consulPath, *secretKeyring); err != nil {
 			log.Println(err)
 		}
 		os.Exit(1)

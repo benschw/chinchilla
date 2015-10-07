@@ -7,6 +7,7 @@ import (
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
+	_ "github.com/benschw/chinchilla/queue"
 	"github.com/benschw/srv-lb/lb"
 	"github.com/hashicorp/consul/api"
 	"github.com/xordataexchange/crypt/encoding/secconf"
@@ -28,7 +29,7 @@ func Decrypt(sKPath string, encrypted string) (string, error) {
 	bytes, err := secconf.Decode([]byte(encrypted), kr)
 	return string(bytes[:]), nil
 }
-func StartDaemon(configPath string, consulPath string, sKPath string, qReg *ep.QueueRegistry) error {
+func StartDaemon(configPath string, consulPath string, sKPath string) error {
 
 	var kr []byte
 	if sKPath != "" {
@@ -63,6 +64,6 @@ func StartDaemon(configPath string, consulPath string, sKPath string, qReg *ep.Q
 		epp = repo
 	}
 
-	svc := ep.NewApp(ap, epp, qReg)
+	svc := ep.NewApp(ap, epp)
 	return svc.Run()
 }

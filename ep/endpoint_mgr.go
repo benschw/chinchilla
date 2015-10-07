@@ -9,16 +9,14 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func NewEndpointMgr(qReg *QueueRegistry) *EndpointMgr {
+func NewEndpointMgr() *EndpointMgr {
 	return &EndpointMgr{
-		qReg: qReg,
-		eps:  make(map[string]*Endpoint),
+		eps: make(map[string]*Endpoint),
 	}
 }
 
 type EndpointMgr struct {
-	qReg *QueueRegistry
-	eps  map[string]*Endpoint
+	eps map[string]*Endpoint
 }
 
 func (m *EndpointMgr) RestartAllEndpoints(conn *amqp.Connection) {
@@ -50,7 +48,7 @@ func (m *EndpointMgr) RestartEndpoint(conn *amqp.Connection, cfg config.Endpoint
 	if err != nil {
 		return err
 	}
-	q, err := m.qReg.Get(cfg.QueueType)
+	q, err := QueueRegistry().Get(cfg.QueueType)
 	if err != nil {
 		return err
 	}

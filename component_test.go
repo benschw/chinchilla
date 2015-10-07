@@ -11,7 +11,7 @@ import (
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
 	"github.com/benschw/chinchilla/example/ex"
-	"github.com/benschw/chinchilla/queue"
+	_ "github.com/benschw/chinchilla/queue"
 	"github.com/benschw/opin-go/rando"
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
@@ -75,10 +75,7 @@ func GetServices() (*ep.EndpointApp, *ex.Server, *ex.Publisher, *ex.Publisher) {
 		Endpoints: []config.EndpointConfig{epCfg, epCfg2},
 	}
 
-	qReg := ep.NewQueueRegistry()
-	qReg.Add(qReg.DefaultKey, &queue.Queue{C: &queue.DefaultWorker{}, D: &queue.DefaultDeliverer{}})
-
-	mgr := ep.NewApp(repo, repo, qReg)
+	mgr := ep.NewApp(repo, repo)
 	return mgr, server, p, p2
 }
 

@@ -7,6 +7,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const DefaultQueueType = "DefaultWorker"
+
 type Queue interface {
 	MsgConsumer
 	MsgDeliverer
@@ -22,24 +24,24 @@ type MsgDeliverer interface {
 	Deliver(d amqp.Delivery, cfg config.EndpointConfig)
 }
 
-func NewQueueRegistry() *QueueRegistry {
-	return &QueueRegistry{
-		DefaultKey: "DefaultWorker",
+func NewQueueRegistry() *QRegistry {
+	return &QRegistry{
+		DefaultKey: DefaultQueueType,
 		reg:        make(map[string]Queue),
 	}
 }
 
-type QueueRegistry struct {
+type QRegistry struct {
 	DefaultKey string
 	reg        map[string]Queue
 }
 
-func (r *QueueRegistry) Add(key string, q Queue) *QueueRegistry {
+func (r *QRegistry) Add(key string, q Queue) *QRegistry {
 	r.reg[key] = q
 	return r
 }
 
-func (r *QueueRegistry) Get(key string) (Queue, error) {
+func (r *QRegistry) Get(key string) (Queue, error) {
 	if key == "" {
 		return r.Get(r.DefaultKey)
 	}
@@ -48,4 +50,20 @@ func (r *QueueRegistry) Get(key string) (Queue, error) {
 		return nil, fmt.Errorf("Queue strategy labeled '%s' doesn't exist", key)
 	}
 	return q, nil
+}
+
+// Set up in init
+var queueReg *QRegistry
+
+// add queue type to global registry
+func RegisterQueueType(key string, q Queue) {
+	queueReg.Add(key, q)
+}
+
+func QueueRegistry() *QRegistry {
+	return queueReg
+}
+
+func init() {
+	queueReg = NewQueueRegistry()
 }
