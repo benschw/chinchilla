@@ -2,6 +2,11 @@ package ep
 
 import "fmt"
 
+const (
+	DefaultConsumerStrategy = "DefaultConsumer"
+	DefaultDeliveryStrategy = "DefaultDeliverer"
+)
+
 // Registry to hold all available Consume and Deliver implementations
 type StrategyRegistry struct {
 	DefaultConsumerStrategy string

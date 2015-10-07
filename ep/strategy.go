@@ -5,11 +5,6 @@ import (
 	"github.com/streadway/amqp"
 )
 
-const (
-	DefaultConsumerStrategy = "DefaultConsumer"
-	DefaultDeliveryStrategy = "DefaultDeliverer"
-)
-
 // Container for configured Consume and Deliver implementations
 type Strategy struct {
 	C MsgConsumer
