@@ -3,8 +3,7 @@ package queue
 import "github.com/benschw/chinchilla/ep"
 
 func init() {
-	ep.RegisterQueueType(
-		ep.DefaultQueueType,
-		&Queue{C: &DefaultWorker{}, D: &DefaultDeliverer{}},
-	)
+	// Register Consumer and Delivery strategies
+	ep.RegisterConsumerStrategy(ep.DefaultConsumerStrategy, &DefaultWorker{})
+	ep.RegisterDeliveryStrategy(ep.DefaultDeliveryStrategy, &DefaultDeliverer{})
 }

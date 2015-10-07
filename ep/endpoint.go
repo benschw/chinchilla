@@ -10,32 +10,30 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func New(ch *amqp.Channel, cfg config.EndpointConfig, q Queue) (*Endpoint, error) {
+func New(ch *amqp.Channel, cfg config.EndpointConfig, s *Strategy) (*Endpoint, error) {
 
 	ep := &Endpoint{
-		exit:      make(chan struct{}),
-		exitResp:  make(chan struct{}),
-		ch:        ch,
-		Config:    cfg,
-		Consumer:  q,
-		Deliverer: q,
+		exit:     make(chan struct{}),
+		exitResp: make(chan struct{}),
+		ch:       ch,
+		Config:   cfg,
+		Strategy: s,
 	}
 	return ep, ep.start()
 }
 
 type Endpoint struct {
-	ch        *amqp.Channel
-	Config    config.EndpointConfig
-	exit      chan struct{}
-	exitResp  chan struct{}
-	Consumer  MsgConsumer
-	Deliverer MsgDeliverer
+	ch       *amqp.Channel
+	Config   config.EndpointConfig
+	exit     chan struct{}
+	exitResp chan struct{}
+	Strategy *Strategy
 }
 
 func (e *Endpoint) start() error {
 	metrics.Counter(epMetricName(e.Config.Name, "start")).AddN(1)
 	log.Printf("%s: Starting Endpoint", e.Config.Name)
-	msgs, err := e.Consumer.Consume(e.ch, e.Config)
+	msgs, err := e.Strategy.Consume(e.ch, e.Config)
 	if err != nil {
 		return err
 	}
@@ -84,7 +82,7 @@ func (e *Endpoint) processMsgs(msgs <-chan amqp.Delivery, cfg config.EndpointCon
 				defer wg.Done()
 				start := time.Now()
 				metrics.Counter(epMetricName(e.Config.Name, "deliver-msg")).AddN(1)
-				e.Deliverer.Deliver(d, cfg)
+				e.Strategy.Deliver(d, cfg)
 				stop := time.Now()
 				RecordDeliveryTime(cfg.Name, stop.Sub(start))
 

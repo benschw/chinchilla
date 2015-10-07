@@ -25,15 +25,16 @@ type ConnectionConfig struct {
 }
 
 type EndpointConfig struct {
-	Lb          lb.GenericLoadBalancer
-	Name        string                      `json: "name"`
-	ServiceHost string                      `json: "servicehost"`
-	ServiceName string                      `json: "servicename"`
-	Uri         string                      `json: "uri"`
-	Method      string                      `json: "method"`
-	Prefetch    int                         `json: "prefetch"`
-	QueueType   string                      `json: "queuetype"`
-	QueueConfig map[interface{}]interface{} `json: "queueconfig"`
+	Lb               lb.GenericLoadBalancer
+	Name             string                      `json: "name"`
+	ServiceHost      string                      `json: "servicehost"`
+	ServiceName      string                      `json: "servicename"`
+	Uri              string                      `json: "uri"`
+	Method           string                      `json: "method"`
+	Prefetch         int                         `json: "prefetch"`
+	ConsumerStrategy string                      `json: "consumerstrategy"`
+	DeliveryStrategy string                      `json: "deliverystrategy"`
+	QueueConfig      map[interface{}]interface{} `json: "queueconfig"`
 }
 
 func (c *EndpointConfig) Equals(cfg EndpointConfig) bool {

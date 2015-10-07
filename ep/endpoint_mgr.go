@@ -48,11 +48,11 @@ func (m *EndpointMgr) RestartEndpoint(conn *amqp.Connection, cfg config.Endpoint
 	if err != nil {
 		return err
 	}
-	q, err := QueueRegistry().Get(cfg.QueueType)
+	s, err := GetStrategy(cfg.ConsumerStrategy, cfg.DeliveryStrategy)
 	if err != nil {
 		return err
 	}
-	ep, err := New(ch, cfg, q)
+	ep, err := New(ch, cfg, s)
 	if err != nil {
 		return err
 	}
