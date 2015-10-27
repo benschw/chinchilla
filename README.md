@@ -24,7 +24,7 @@ reflect the new configuration.
 
 ### terminal 2
 
-	 SRVLB_HOST=127.0.0.1:8600 ./chinchilla
+	 SRVLB_HOST=127.0.0.1:8600 ./chinchilla -secret-keyring ./test-keys/.secring.gpg
 
 
 ### terminal 3
