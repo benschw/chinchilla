@@ -30,6 +30,17 @@ queueconfig:
   queuename: demo.foo
 EOF
 
+read -r -d '' FANOUT_CFG << EOF
+name: Fanout
+servicename: foo
+uri: /foo
+method: POST
+consumerstrategy: fanout
+queueconfig:
+  prefetch: 5
+  queuename: demo.foo
+EOF
+
 read -r -d '' RABBIT_SVC << EOF
 {
   "ID": "rabbitmq1",
@@ -48,11 +59,12 @@ read -r -d '' FOO_SVC << EOF
 EOF
 
 echo "Configuring"
-curl -X PUT http://localhost:8500/v1/agent/service/register -d "$RABBIT_SVC"
-curl -X PUT http://localhost:8500/v1/agent/service/register -d "$FOO_SVC"
+curl -X PUT http://127.0.0.1:8500/v1/agent/service/register -d "$RABBIT_SVC"
+curl -X PUT http://127.0.0.1:8500/v1/agent/service/register -d "$FOO_SVC"
 
-curl -X PUT http://localhost:8500/v1/kv/chinchilla/connection.yaml -d "$CONN_CFG"
-curl -X PUT http://localhost:8500/v1/kv/chinchilla/endpoints/foo.yaml -d "$FOO_CFG"
+curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/connection.yaml -d "$CONN_CFG"
+curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/endpoints/foo.yaml -d "$FOO_CFG"
+curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/endpoints/fanout.yaml -d "$FANOUT_CFG"
 
 
 
