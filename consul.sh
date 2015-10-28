@@ -30,15 +30,28 @@ queueconfig:
   queuename: demo.foo
 EOF
 
-read -r -d '' FANOUT_CFG << EOF
-name: Fanout
+read -r -d '' TOPIC_CFG << EOF
+name: Topic
 servicename: foo
 uri: /foo
 method: POST
-consumerstrategy: fanout
+consumerstrategy: topic
 queueconfig:
   prefetch: 5
-  queuename: demo.foo
+  topicname: foo.*
+  exchangename: demo
+EOF
+
+read -r -d '' TOPIC2_CFG << EOF
+name: Topic2
+servicename: foo
+uri: /foo
+method: POST
+consumerstrategy: topic
+queueconfig:
+  prefetch: 5
+  topicname: foo.*
+  exchangename: demo
 EOF
 
 read -r -d '' RABBIT_SVC << EOF
@@ -64,7 +77,8 @@ curl -X PUT http://127.0.0.1:8500/v1/agent/service/register -d "$FOO_SVC"
 
 curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/connection.yaml -d "$CONN_CFG"
 curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/endpoints/foo.yaml -d "$FOO_CFG"
-curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/endpoints/fanout.yaml -d "$FANOUT_CFG"
+curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/endpoints/topic.yaml -d "$TOPIC_CFG"
+curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/endpoints/topic2.yaml -d "$TOPIC2_CFG"
 
 
 

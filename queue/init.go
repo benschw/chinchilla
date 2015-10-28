@@ -2,11 +2,11 @@ package queue
 
 import "github.com/benschw/chinchilla/ep"
 
-const FanOutStrategy = "fanout"
+const TopicStrategy = "topic"
 
 func init() {
 	// Register Consumer and Delivery strategies
 	ep.RegisterConsumerStrategy(ep.DefaultConsumerStrategy, &DefaultWorker{})
 	ep.RegisterDeliveryStrategy(ep.DefaultDeliveryStrategy, &DefaultDeliverer{})
-	ep.RegisterConsumerStrategy(FanOutStrategy, &FanOut{})
+	ep.RegisterConsumerStrategy(TopicStrategy, &Topic{})
 }

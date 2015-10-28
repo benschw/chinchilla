@@ -15,6 +15,7 @@ type DefaultDeliverer struct {
 }
 
 func (p *DefaultDeliverer) Deliver(d amqp.Delivery, cfg config.EndpointConfig) {
+	log.Println("Something came in")
 	queueName, ok := cfg.QueueConfig["queuename"].(string)
 	if !ok {
 		queueName = "(unknown)"
