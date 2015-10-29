@@ -21,6 +21,7 @@ func failOnError(err error, msg string) {
 func main() {
 	runs := flag.Int("runs", 1, "msgs to publish")
 	queueName := flag.String("queue", "demo.foo", "supply a queue to publish to")
+	topicName := flag.String("topic", "foo.update", "supply a topic to publish to")
 	contentType := flag.String("content-type", "text/plain", "set the message content type")
 	body := flag.String("body", "Hello World", "Set the message's body")
 	flag.Parse()
@@ -36,7 +37,9 @@ func main() {
 		Config: &config.EndpointConfig{
 			Name: "TestEndpoint",
 			QueueConfig: map[interface{}]interface{}{
-				"queuename": *queueName,
+				"queuename":    *queueName,
+				"topicname":    *topicName,
+				"exchangename": "demo",
 			},
 		},
 	}
@@ -44,7 +47,12 @@ func main() {
 	for i := 0; i < *runs; i++ {
 		done.Add(1)
 		go func(i int) {
-			err = p.Publish(fmt.Sprintf("%s-%d", *body, i), *contentType)
+			if len(*queueName) > 0 {
+				err = p.Publish(fmt.Sprintf("%s-%d", *body, i), *contentType)
+			} else if len(*topicName) > 0 {
+				err = p.PublishTopic(fmt.Sprintf("%s-%d", *body, i), *contentType)
+			}
+
 			if err != nil {
 				panic(err)
 			}
