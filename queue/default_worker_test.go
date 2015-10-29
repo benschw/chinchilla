@@ -1,7 +1,9 @@
 package queue
 
 import (
+	"log"
 	"testing"
+	"time"
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/example/ex"
@@ -23,7 +25,8 @@ func TestDefaultWorkerConsume(t *testing.T) {
 	// given
 	epCfg := config.EndpointConfig{
 		QueueConfig: map[interface{}]interface{}{
-			"queuename": "foo.bar",
+			"queuename": "foo.yahoo10",
+			"prefetch":  5,
 		},
 	}
 
@@ -38,9 +41,27 @@ func TestDefaultWorkerConsume(t *testing.T) {
 
 	// when
 	publisher.Publish("test default worker", "text/plain")
-	_, _ = worker.Consume(ch, epCfg)
+	publisher.Publish("test default worker 2", "text/plain")
+	publisher.Publish("test default worker 3", "text/plain")
+	time.Sleep(1000 * time.Millisecond)
+	msgs, _ := worker.Consume(ch, epCfg)
 
-	// // then
-	// numMsgs := len(msgs)
-	assert.Equal(t, 1, 1, "wrong number of msgs")
+	defer ch.Close()
+
+	var cnt = 0
+
+Loop:
+	for {
+		select {
+		case d, _ := <-msgs:
+			d.Ack(false)
+			cnt++
+			log.Println(cnt)
+		default:
+			log.Println("break")
+			break Loop
+		}
+	}
+
+	assert.Equal(t, cnt, 3, "wrong number of msgs")
 }
