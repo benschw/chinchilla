@@ -47,12 +47,11 @@ func TestTopicConsumeGlob(t *testing.T) {
 	// given
 	pubCfg := config.EndpointConfig{
 		QueueConfig: map[interface{}]interface{}{
-			"queuename":    "foos",
 			"topicname":    "foo.update",
 			"exchangename": "demo",
 		},
 	}
-	epCfg = config.EndpointConfig{
+	consumerCfg := config.EndpointConfig{
 		QueueConfig: map[interface{}]interface{}{
 			"queuename":    "foos",
 			"topicname":    "foo.*",
@@ -71,10 +70,10 @@ func TestTopicConsumeGlob(t *testing.T) {
 	defer ch.Close()
 
 	// when
-	msgs, err := topic.Consume(ch, epCfg)
+	msgs, err := topic.Consume(ch, consumerCfg)
 
 	for i := 0; i < 10; i++ {
-		publisher.PublishTopic(fmt.Sprintf("test topic: #%d", i), "text/plain")
+		publisher.PublishTopic(fmt.Sprintf("glob topic: #%d", i), "text/plain")
 	}
 
 	// then
@@ -88,16 +87,15 @@ func TestTopicConsumeNegative(t *testing.T) {
 	// given
 	pubCfg := config.EndpointConfig{
 		QueueConfig: map[interface{}]interface{}{
-			"queuename":    "foos",
-			"topicname":    "foo.update",
-			"exchangename": "demo",
+			"topicname":    "baz.update",
+			"exchangename": "asdufhaksjdhf",
 		},
 	}
-	epCfg = config.EndpointConfig{
+	consumerCfg := config.EndpointConfig{
 		QueueConfig: map[interface{}]interface{}{
-			"queuename":    "foos",
-			"topicname":    "foo.add",
-			"exchangename": "demo",
+			"queuename":    "asdf",
+			"topicname":    "iuweoiruwlekrjlk",
+			"exchangename": "asdufhaksjdhf",
 		},
 	}
 
@@ -112,15 +110,15 @@ func TestTopicConsumeNegative(t *testing.T) {
 	defer ch.Close()
 
 	// when
-	msgs, err := topic.Consume(ch, epCfg)
+	msgs, err := topic.Consume(ch, consumerCfg)
 
 	for i := 0; i < 10; i++ {
-		publisher.PublishTopic(fmt.Sprintf("test topic: #%d", i), "text/plain")
+		publisher.PublishTopic(fmt.Sprintf("shouldnt show up: #%d", i), "text/plain")
 	}
 
 	// then
 	assert.Nil(t, err)
 	cnt := countMessages(msgs)
 
-	assert.Equal(t, 0, cnt, "wrong number of msgs")
+	assert.Equal(t, cnt, 0, "wrong number of msgs")
 }
