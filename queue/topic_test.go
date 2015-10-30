@@ -2,66 +2,60 @@ package queue
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/example/ex"
+	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTopicConsume(t *testing.T) {
-	// given
-	epCfg := config.EndpointConfig{
-		QueueConfig: map[interface{}]interface{}{
-			"queuename":    "foos",
-			"topicname":    "foo.update",
-			"exchangename": "demo",
+func RandomString(strlen int) string {
+	rand.Seed(time.Now().UTC().UnixNano())
+	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+	result := make([]byte, strlen)
+	for i := 0; i < strlen; i++ {
+		result[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(result)
+}
+func publishABunchOfStuff(exch string, conn *amqp.Connection) {
+	publisher := &ex.Publisher{
+		Conn: conn,
+		Config: &config.EndpointConfig{
+			QueueConfig: map[interface{}]interface{}{
+				"topicname":    "baz.update",
+				"exchangename": exch,
+			},
 		},
 	}
-
-	publisher := &ex.Publisher{
-		Conn:   conn,
-		Config: &epCfg,
+	publisher2 := &ex.Publisher{
+		Conn: conn,
+		Config: &config.EndpointConfig{
+			QueueConfig: map[interface{}]interface{}{
+				"topicname":    "baz.add",
+				"exchangename": exch,
+			},
+		},
 	}
-
-	topic := &Topic{}
-
-	ch, _ := conn.Channel()
-	defer ch.Close()
-
-	// when
-	msgs, err := topic.Consume(ch, epCfg)
-
 	for i := 0; i < 10; i++ {
-		publisher.PublishTopic(fmt.Sprintf("test topic: #%d", i), "text/plain")
+		publisher.PublishTopic(fmt.Sprintf("update msg: #%d", i), "text/plain")
+		publisher2.PublishTopic(fmt.Sprintf("add msg: #%d", i), "text/plain")
 	}
-
-	// then
-	assert.Nil(t, err)
-	cnt := countMessages(msgs)
-
-	assert.Equal(t, 10, cnt, "wrong number of msgs")
 }
 
 func TestTopicConsumeGlob(t *testing.T) {
 	// given
-	pubCfg := config.EndpointConfig{
-		QueueConfig: map[interface{}]interface{}{
-			"topicname":    "foo.update",
-			"exchangename": "demo",
-		},
-	}
+	exch := RandomString(10)
+
 	consumerCfg := config.EndpointConfig{
 		QueueConfig: map[interface{}]interface{}{
-			"queuename":    "foos",
-			"topicname":    "foo.*",
-			"exchangename": "demo",
+			"queuename":    exch + "q",
+			"topicname":    "baz.*",
+			"exchangename": exch,
 		},
-	}
-
-	publisher := &ex.Publisher{
-		Conn:   conn,
-		Config: &pubCfg,
 	}
 
 	topic := &Topic{}
@@ -72,36 +66,25 @@ func TestTopicConsumeGlob(t *testing.T) {
 	// when
 	msgs, err := topic.Consume(ch, consumerCfg)
 
-	for i := 0; i < 10; i++ {
-		publisher.PublishTopic(fmt.Sprintf("glob topic: #%d", i), "text/plain")
-	}
+	publishABunchOfStuff(exch, conn)
 
 	// then
 	assert.Nil(t, err)
 	cnt := countMessages(msgs)
 
-	assert.Equal(t, 10, cnt, "wrong number of msgs")
+	assert.Equal(t, 20, cnt, "wrong number of msgs")
 }
 
 func TestTopicConsumeNegative(t *testing.T) {
 	// given
-	pubCfg := config.EndpointConfig{
-		QueueConfig: map[interface{}]interface{}{
-			"topicname":    "baz.update",
-			"exchangename": "asdufhaksjdhf",
-		},
-	}
+	exch := RandomString(10)
+
 	consumerCfg := config.EndpointConfig{
 		QueueConfig: map[interface{}]interface{}{
-			"queuename":    "asdf",
+			"queuename":    exch + "q",
 			"topicname":    "iuweoiruwlekrjlk",
-			"exchangename": "asdufhaksjdhf",
+			"exchangename": exch,
 		},
-	}
-
-	publisher := &ex.Publisher{
-		Conn:   conn,
-		Config: &pubCfg,
 	}
 
 	topic := &Topic{}
@@ -112,45 +95,25 @@ func TestTopicConsumeNegative(t *testing.T) {
 	// when
 	msgs, err := topic.Consume(ch, consumerCfg)
 
-	for i := 0; i < 10; i++ {
-		publisher.PublishTopic(fmt.Sprintf("shouldnt show up: #%d", i), "text/plain")
-	}
+	publishABunchOfStuff(exch, conn)
 
 	// then
 	assert.Nil(t, err)
 	cnt := countMessages(msgs)
 
-	assert.Equal(t, cnt, 0, "wrong number of msgs")
+	assert.Equal(t, 0, cnt, "wrong number of msgs")
 }
+
 func TestTopicConsumeFiltered(t *testing.T) {
 	// given
-	pubCfg := config.EndpointConfig{
-		QueueConfig: map[interface{}]interface{}{
-			"topicname":    "baz.update",
-			"exchangename": "asdufhaksjdhf",
-		},
-	}
-	pub2Cfg := config.EndpointConfig{
-		QueueConfig: map[interface{}]interface{}{
-			"topicname":    "baz.add",
-			"exchangename": "asdufhaksjdhf",
-		},
-	}
+	exch := RandomString(10)
+
 	consumerCfg := config.EndpointConfig{
 		QueueConfig: map[interface{}]interface{}{
-			"queuename":    "asdfiqwer",
+			"queuename":    exch + "q",
 			"topicname":    "baz.add",
-			"exchangename": "asdufhaksjdhf",
+			"exchangename": exch,
 		},
-	}
-
-	publisher := &ex.Publisher{
-		Conn:   conn,
-		Config: &pubCfg,
-	}
-	publisher2 := &ex.Publisher{
-		Conn:   conn,
-		Config: &pub2Cfg,
 	}
 
 	topic := &Topic{}
@@ -161,10 +124,7 @@ func TestTopicConsumeFiltered(t *testing.T) {
 	// when
 	msgs, err := topic.Consume(ch, consumerCfg)
 
-	for i := 0; i < 10; i++ {
-		publisher.PublishTopic(fmt.Sprintf("shouldnt show up: #%d", i), "text/plain")
-		publisher2.PublishTopic(fmt.Sprintf("shouldnt show up: #%d", i), "text/plain")
-	}
+	publishABunchOfStuff(exch, conn)
 
 	// then
 	assert.Nil(t, err)
