@@ -3,7 +3,6 @@ package queue
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/example/ex"
@@ -14,7 +13,7 @@ func TestTopicConsume(t *testing.T) {
 	// given
 	epCfg := config.EndpointConfig{
 		QueueConfig: map[interface{}]interface{}{
-			"prefetch":     5,
+			"queuename":    "foos",
 			"topicname":    "foo.update",
 			"exchangename": "demo",
 		},
@@ -39,7 +38,6 @@ func TestTopicConsume(t *testing.T) {
 
 	// then
 	assert.Nil(t, err)
-	time.Sleep(2000 * time.Millisecond)
 	cnt := countMessages(msgs)
 
 	assert.Equal(t, 10, cnt, "wrong number of msgs")
