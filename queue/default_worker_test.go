@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"log"
+	"fmt"
 	"testing"
 	"time"
 
@@ -25,7 +25,7 @@ func TestDefaultWorkerConsume(t *testing.T) {
 	// given
 	epCfg := config.EndpointConfig{
 		QueueConfig: map[interface{}]interface{}{
-			"queuename": "foo.yahoo10",
+			"queuename": "foo.bar",
 			"prefetch":  5,
 		},
 	}
@@ -38,30 +38,35 @@ func TestDefaultWorkerConsume(t *testing.T) {
 	worker := &DefaultWorker{}
 
 	ch, _ := conn.Channel()
-
-	// when
-	publisher.Publish("test default worker", "text/plain")
-	publisher.Publish("test default worker 2", "text/plain")
-	publisher.Publish("test default worker 3", "text/plain")
-	time.Sleep(1000 * time.Millisecond)
-	msgs, _ := worker.Consume(ch, epCfg)
-
 	defer ch.Close()
 
-	var cnt = 0
+	for i := 0; i < 10; i++ {
+		publisher.Publish(fmt.Sprintf("test default worker: #%d", i), "text/plain")
+	}
 
-Loop:
+	// when
+	msgs, _ := worker.Consume(ch, epCfg)
+
+	// then
+	cnt := countMessages(msgs)
+
+	assert.Equal(t, 10, cnt, "wrong number of msgs")
+}
+
+func countMessages(msgs <-chan amqp.Delivery) int {
+
+	var cnt = 0
 	for {
 		select {
 		case d, _ := <-msgs:
 			d.Ack(false)
+			if d.Body == nil {
+				return cnt
+			}
 			cnt++
-			log.Println(cnt)
-		default:
-			log.Println("break")
-			break Loop
+		case <-time.After(5 * time.Millisecond):
+			return cnt
 		}
 	}
-
-	assert.Equal(t, cnt, 3, "wrong number of msgs")
+	return 0
 }
