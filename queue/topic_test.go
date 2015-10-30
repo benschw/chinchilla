@@ -30,17 +30,17 @@ func TestTopicConsume(t *testing.T) {
 	ch, _ := conn.Channel()
 	defer ch.Close()
 
+	// when
+	msgs, err := topic.Consume(ch, epCfg)
+
 	for i := 0; i < 10; i++ {
 		publisher.PublishTopic(fmt.Sprintf("test topic: #%d", i), "text/plain")
 	}
-
-	// when
-	msgs, err := topic.Consume(ch, epCfg)
 
 	// then
 	assert.Nil(t, err)
 	time.Sleep(2000 * time.Millisecond)
 	cnt := countMessages(msgs)
 
-	assert.Equal(t, cnt, 10, "wrong number of msgs")
+	assert.Equal(t, 10, cnt, "wrong number of msgs")
 }

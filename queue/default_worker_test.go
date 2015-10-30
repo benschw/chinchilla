@@ -40,5 +40,5 @@ func TestDefaultWorkerConsume(t *testing.T) {
 
 	cnt := countMessages(msgs)
 
-	assert.Equal(t, cnt, 10, "wrong number of msgs")
+	assert.Equal(t, 10, cnt, "wrong number of msgs")
 }

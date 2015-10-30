@@ -2,6 +2,7 @@ package queue
 
 import (
 	"fmt"
+
 	"github.com/benschw/chinchilla/config"
 	"github.com/streadway/amqp"
 )
@@ -39,12 +40,12 @@ func (d *Topic) Consume(ch *amqp.Channel, cfg config.EndpointConfig) (<-chan amq
 	}
 
 	q, err := ch.QueueDeclare(
-		"",    // name
-		true,  // durable
-		false, // delete when usused
-		true,  // exclusive
-		false, // no-wait
-		nil,   // arguments
+		"topicq", // name
+		true,     // durable
+		false,    // delete when usused
+		true,     // exclusive
+		false,    // no-wait
+		nil,      // arguments
 	)
 	if err != nil {
 		return nil, err
