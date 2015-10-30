@@ -122,3 +122,53 @@ func TestTopicConsumeNegative(t *testing.T) {
 
 	assert.Equal(t, cnt, 0, "wrong number of msgs")
 }
+func TestTopicConsumeFiltered(t *testing.T) {
+	// given
+	pubCfg := config.EndpointConfig{
+		QueueConfig: map[interface{}]interface{}{
+			"topicname":    "baz.update",
+			"exchangename": "asdufhaksjdhf",
+		},
+	}
+	pub2Cfg := config.EndpointConfig{
+		QueueConfig: map[interface{}]interface{}{
+			"topicname":    "baz.add",
+			"exchangename": "asdufhaksjdhf",
+		},
+	}
+	consumerCfg := config.EndpointConfig{
+		QueueConfig: map[interface{}]interface{}{
+			"queuename":    "asdfiqwer",
+			"topicname":    "baz.add",
+			"exchangename": "asdufhaksjdhf",
+		},
+	}
+
+	publisher := &ex.Publisher{
+		Conn:   conn,
+		Config: &pubCfg,
+	}
+	publisher2 := &ex.Publisher{
+		Conn:   conn,
+		Config: &pub2Cfg,
+	}
+
+	topic := &Topic{}
+
+	ch, _ := conn.Channel()
+	defer ch.Close()
+
+	// when
+	msgs, err := topic.Consume(ch, consumerCfg)
+
+	for i := 0; i < 10; i++ {
+		publisher.PublishTopic(fmt.Sprintf("shouldnt show up: #%d", i), "text/plain")
+		publisher2.PublishTopic(fmt.Sprintf("shouldnt show up: #%d", i), "text/plain")
+	}
+
+	// then
+	assert.Nil(t, err)
+	cnt := countMessages(msgs)
+
+	assert.Equal(t, 10, cnt, "wrong number of msgs")
+}
