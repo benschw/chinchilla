@@ -20,7 +20,7 @@ func failOnError(err error, msg string) {
 
 func main() {
 	runs := flag.Int("runs", 1, "msgs to publish")
-	queueName := flag.String("queue", "demo.foo", "supply a queue to publish to")
+	queueName := flag.String("queue", "", "supply a queue to publish to")
 	topicName := flag.String("topic", "foo.update", "supply a topic to publish to")
 	contentType := flag.String("content-type", "text/plain", "set the message content type")
 	body := flag.String("body", "Hello World", "Set the message's body")

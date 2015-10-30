@@ -3,18 +3,20 @@ package queue
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/example/ex"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDefaultWorkerConsume(t *testing.T) {
+func TestTopicConsume(t *testing.T) {
 	// given
 	epCfg := config.EndpointConfig{
 		QueueConfig: map[interface{}]interface{}{
-			"queuename": "foo.bar",
-			"prefetch":  5,
+			"prefetch":     5,
+			"topicname":    "foo.update",
+			"exchangename": "demo",
 		},
 	}
 
@@ -23,21 +25,21 @@ func TestDefaultWorkerConsume(t *testing.T) {
 		Config: &epCfg,
 	}
 
-	worker := &DefaultWorker{}
+	topic := &Topic{}
 
 	ch, _ := conn.Channel()
 	defer ch.Close()
 
 	for i := 0; i < 10; i++ {
-		publisher.Publish(fmt.Sprintf("test default worker: #%d", i), "text/plain")
+		publisher.PublishTopic(fmt.Sprintf("test topic: #%d", i), "text/plain")
 	}
 
 	// when
-	msgs, err := worker.Consume(ch, epCfg)
+	msgs, err := topic.Consume(ch, epCfg)
 
 	// then
 	assert.Nil(t, err)
-
+	time.Sleep(2000 * time.Millisecond)
 	cnt := countMessages(msgs)
 
 	assert.Equal(t, cnt, 10, "wrong number of msgs")
