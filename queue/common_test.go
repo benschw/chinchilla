@@ -28,7 +28,7 @@ func countMessages(msgs <-chan amqp.Delivery) int {
 				return cnt
 			}
 			cnt++
-		case <-time.After(5 * time.Millisecond):
+		case <-time.After(50 * time.Millisecond):
 			return cnt
 		}
 	}
