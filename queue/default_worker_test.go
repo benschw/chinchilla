@@ -28,12 +28,11 @@ func TestDefaultWorkerConsume(t *testing.T) {
 	ch, _ := conn.Channel()
 	defer ch.Close()
 
+	// when
+	msgs, err := worker.Consume(ch, epCfg)
 	for i := 0; i < 10; i++ {
 		publisher.Publish(fmt.Sprintf("test default worker: #%d", i), "text/plain")
 	}
-
-	// when
-	msgs, err := worker.Consume(ch, epCfg)
 
 	// then
 	assert.Nil(t, err)
