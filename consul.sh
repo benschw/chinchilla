@@ -39,6 +39,7 @@ consumerstrategy: topic
 queueconfig:
   prefetch: 5
   topicname: foo.*
+  queuename: all-foos
   exchangename: demo
 EOF
 
@@ -51,6 +52,7 @@ consumerstrategy: topic
 queueconfig:
   prefetch: 5
   topicname: foo.*
+  queuename: more-foos
   exchangename: demo
 EOF
 

@@ -11,6 +11,11 @@ type Topic struct {
 }
 
 func (d *Topic) Consume(ch *amqp.Channel, cfg config.EndpointConfig) (<-chan amqp.Delivery, error) {
+	queueName, ok := cfg.QueueConfig["queuename"].(string)
+	if !ok {
+		return nil, fmt.Errorf("unable to parse queuename from config")
+	}
+
 	topicName, ok := cfg.QueueConfig["topicname"].(string)
 	if !ok {
 		return nil, fmt.Errorf("unable to parse topicname from config")
@@ -40,12 +45,12 @@ func (d *Topic) Consume(ch *amqp.Channel, cfg config.EndpointConfig) (<-chan amq
 	}
 
 	q, err := ch.QueueDeclare(
-		"topicq", // name
-		true,     // durable
-		false,    // delete when usused
-		true,     // exclusive
-		false,    // no-wait
-		nil,      // arguments
+		queueName, // name
+		true,      // durable
+		false,     // delete when usused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
 	)
 	if err != nil {
 		return nil, err
