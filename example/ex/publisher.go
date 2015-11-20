@@ -6,6 +6,7 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/streadway/amqp"
 	"log"
+	"time"
 )
 
 var MessageId string = uuid.NewV4().String()
@@ -37,6 +38,7 @@ func (p *Publisher) Publish(body string, contentType string) error {
 			Body:        []byte(body),
 			MessageId:   MessageId,
 			ReplyTo:     "foo.poo",
+			Timestamp:   time.Now(),
 		})
 	if err != nil {
 		return err

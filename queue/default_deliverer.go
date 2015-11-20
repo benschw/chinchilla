@@ -51,7 +51,7 @@ func processMsg(d amqp.Delivery, cfg config.EndpointConfig) (bool, error) {
 	req.Header.Set("X-reply_to", d.ReplyTo)
 	req.Header.Set("X-expiration", d.Expiration)
 	req.Header.Set("X-message_id", d.MessageId)
-	req.Header.Set("X-timestamp", d.Timestamp.String())
+	req.Header.Set("X-timestamp", d.Timestamp.Format("2006-01-02 15:04:05"))
 	req.Header.Set("X-exchange", d.Exchange)
 	req.Header.Set("X-routing_key", d.RoutingKey)
 

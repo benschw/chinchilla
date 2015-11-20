@@ -79,7 +79,7 @@ func GetServices() (*ep.EndpointApp, *ex.Server, *ex.Publisher, *ex.Publisher) {
 	return mgr, server, p, p2
 }
 
-func xTestPublish(t *testing.T) {
+func TestPublish(t *testing.T) {
 	// setup
 	mgr, server, p, _ := GetServices()
 	go server.Start()
@@ -113,7 +113,7 @@ func xTestPublish(t *testing.T) {
 		assert.True(t, reflect.DeepEqual(api, foundApi), fmt.Sprintf("\n   %+v\n!= %+v", api, foundApi))
 	}
 }
-func xTestPublishLotsAndLots(t *testing.T) {
+func TestPublishLotsAndLots(t *testing.T) {
 	// setup
 	mgr, server, p, p2 := GetServices()
 	go server.Start()
@@ -156,8 +156,10 @@ func TestMessageHeaders(t *testing.T) {
 	mgr.Stop()
 
 	// then
+	timestamp, _ := time.Parse("2006-01-02 15:04:05", server.H.Request.Header.Get("X-Timestamp"))
+
 	assert.Equal(t, "foo.poo", server.H.Request.Header.Get("X-reply_to"), "reply_to is wrong")
-	assert.Equal(t, "0001-01-01 00:00:00 +0000 UTC", server.H.Request.Header.Get("X-Timestamp"), "wrong timestamp")
+	assert.True(t, time.Now().Second()-timestamp.Second() <= 3, "wrong timestamp")
 	assert.Equal(t, "test.foo", server.H.Request.Header.Get("X-routing_key"), "wrong routing key")
 	assert.Equal(t, ex.MessageId, server.H.Request.Header.Get("X-message_id"), "wrong message id")
 }
