@@ -48,6 +48,12 @@ func processMsg(d amqp.Delivery, cfg config.EndpointConfig) (bool, error) {
 		return true, err
 	}
 	req.Header.Set("Content-Type", d.ContentType)
+	req.Header.Set("X-reply_to", d.ReplyTo)
+	req.Header.Set("X-expiration", d.Expiration)
+	req.Header.Set("X-message_id", d.MessageId)
+	req.Header.Set("X-timestamp", d.Timestamp.String())
+	req.Header.Set("X-exchange", d.Exchange)
+	req.Header.Set("X-routing_key", d.RoutingKey)
 
 	timeout := time.Duration(time.Duration(timeoutSec) * time.Second)
 	client := http.Client{

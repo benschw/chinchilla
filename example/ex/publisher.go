@@ -3,9 +3,12 @@ package ex
 import (
 	"fmt"
 	"github.com/benschw/chinchilla/config"
+	"github.com/satori/go.uuid"
 	"github.com/streadway/amqp"
 	"log"
 )
+
+var MessageId string = uuid.NewV4().String()
 
 type Publisher struct {
 	Conn   *amqp.Connection
@@ -32,6 +35,8 @@ func (p *Publisher) Publish(body string, contentType string) error {
 		amqp.Publishing{
 			ContentType: contentType,
 			Body:        []byte(body),
+			MessageId:   MessageId,
+			ReplyTo:     "foo.poo",
 		})
 	if err != nil {
 		return err
