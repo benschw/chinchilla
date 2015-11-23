@@ -2,12 +2,14 @@ package ep
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/codahale/metrics"
 )
 
 var deliveryTimerHists = make(map[string]*metrics.Histogram)
+var hm sync.Mutex
 
 const MetricRoot = "chinchilla"
 
@@ -20,10 +22,12 @@ func epMetricName(epName string, name string) string {
 }
 
 func RecordDeliveryTime(name string, t time.Duration) {
+	hm.Lock()
 	if _, ok := deliveryTimerHists[name]; !ok {
 		h := metrics.NewHistogram(epMetricName(name, "processing-time"), 0, 300*1000, 4)
 		deliveryTimerHists[name] = h
 	}
+	hm.Unlock()
 
 	h := deliveryTimerHists[name]
 
