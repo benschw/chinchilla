@@ -158,8 +158,8 @@ func TestMessageHeaders(t *testing.T) {
 	// then
 	timestamp, _ := time.Parse("2006-01-02 15:04:05", server.H.Request.Header.Get("X-Timestamp"))
 
-	assert.Equal(t, "foo.poo", server.H.Request.Header.Get("X-reply_to"), "reply_to is wrong")
+	assert.Equal(t, "foo.poo", server.H.Request.Header.Get("X-reply-to"), "reply_to is wrong")
 	assert.True(t, time.Now().Second()-timestamp.Second() <= 3, "wrong timestamp")
-	assert.Equal(t, "test.foo", server.H.Request.Header.Get("X-routing_key"), "wrong routing key")
-	assert.Equal(t, ex.MessageId, server.H.Request.Header.Get("X-message_id"), "wrong message id")
+	assert.Equal(t, "test.foo", server.H.Request.Header.Get("X-routing-key"), "wrong routing key")
+	assert.Equal(t, ex.MessageId, server.H.Request.Header.Get("X-message-id"), "wrong message id")
 }
