@@ -56,6 +56,7 @@ queueconfig:
   exchangename: demo
 EOF
 
+
 read -r -d '' RABBIT_SVC << EOF
 {
   "ID": "rabbitmq1",
@@ -73,6 +74,52 @@ read -r -d '' FOO_SVC << EOF
 }
 EOF
 
+# Repeater Config
+read -r -d '' DC1_CFG << EOF
+name: dc1
+user: guest
+password: guest
+vhost: /
+host: localhost
+port: 5672
+EOF
+#servicename: rabbitmq
+
+read -r -d '' REP_CFG << EOF
+name: Repeater
+servicename: foo
+uri: /foo
+method: POST
+consumerstrategy: topic
+deliverystrategy: topic-repeater
+queueconfig:
+  prefetch: 5
+  topicname: '#'
+  queuename: repeater-queue
+  exchangename: demo-in
+  connection: dc1
+  exchangeout: demo-out
+EOF
+
+read -r -d '' REP_OUT_CFG << EOF
+name: Repeated
+servicename: foo
+uri: /foo
+method: POST
+consumerstrategy: topic
+queueconfig:
+  prefetch: 5
+  topicname: '#'
+  queuename: repeated
+  exchangename: demo-out
+EOF
+
+curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/endpoints/repeater.yaml -d "$REP_CFG"
+curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/repeater/connections/dc1.yaml -d "$DC1_CFG"
+curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/endpoints/repeated.yaml -d "$REP_OUT_CFG"
+
+# End
+
 echo "Configuring"
 curl -X PUT http://127.0.0.1:8500/v1/agent/service/register -d "$RABBIT_SVC"
 curl -X PUT http://127.0.0.1:8500/v1/agent/service/register -d "$FOO_SVC"
@@ -81,7 +128,6 @@ curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/connection.yaml -d "$CONN_CFG
 curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/endpoints/foo.yaml -d "$FOO_CFG"
 curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/endpoints/topic.yaml -d "$TOPIC_CFG"
 curl -X PUT http://127.0.0.1:8500/v1/kv/chinchilla/endpoints/topic2.yaml -d "$TOPIC2_CFG"
-
 
 
 

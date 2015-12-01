@@ -58,6 +58,7 @@ func (c *EndpointConfig) Url() (string, error) {
 }
 
 type RabbitAddress struct {
+	Name     string
 	KeyRing  []byte
 	User     string
 	Password string

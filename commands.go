@@ -8,6 +8,7 @@ import (
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
 	_ "github.com/benschw/chinchilla/queue"
+	_ "github.com/benschw/chinchilla/queue/repeater"
 	"github.com/benschw/srv-lb/lb"
 	"github.com/hashicorp/consul/api"
 	"github.com/xordataexchange/crypt/encoding/secconf"
