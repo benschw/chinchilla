@@ -1,99 +1,29 @@
 package repeater
 
-import (
-	"log"
-	"time"
-
-	"github.com/benschw/chinchilla/config"
-	"github.com/benschw/chinchilla/ep"
-	"github.com/streadway/amqp"
-)
+import "github.com/streadway/amqp"
 
 type RepeaterLib struct {
-	add map[string]config.RabbitAddress
-	chs map[string]chan PublishRequest
+	conProvider ConnectionProvider
 }
 
-func NewRepeaterLib(arr []config.RabbitAddress) *RepeaterLib {
-	l := &RepeaterLib{
-		add: make(map[string]config.RabbitAddress),
-		chs: make(map[string]chan PublishRequest),
-	}
-
-	for _, a := range arr {
-		ch := make(chan PublishRequest)
-		l.add[a.Name] = a
-		l.chs[a.Name] = ch
-
-		go repeaterDeMux(&ConnectionAddressProvider{add: a}, ch)
-	}
-	return l
+func NewRepeaterLib(conProvider ConnectionProvider) *RepeaterLib {
+	return &RepeaterLib{conProvider: conProvider}
 }
 
 func (r *RepeaterLib) Repeat(d amqp.Delivery, dc string, ex string) error {
-	resp := make(chan error)
-	req := PublishRequest{
-		ex:   ex,
-		d:    d,
-		resp: resp,
-	}
-	r.chs[dc] <- req
-
-	return <-resp
-}
-
-type PublishRequest struct {
-	ex   string
-	d    amqp.Delivery
-	resp chan error
-}
-
-func repeaterDeMux(add config.RabbitAddressProvider, req chan PublishRequest) {
-	var cErr chan *amqp.Error
-	conn, connErr, err := ep.DialRabbit(add)
+	conn, err := r.conProvider.GetConnection(dc)
 	if err != nil {
-		log.Printf("Fatal Repeater Connection Error: %s", err)
-		return
+		return err
 	}
-	cErr = connErr
 	defer conn.Close()
+
 	ch, err := conn.Channel()
 	if err != nil {
-		log.Printf("Fatal Repeater Connection Error: %s", err)
-		return
+		return err
 	}
 	defer ch.Close()
 
-	for {
-		select {
-		case err, ok := <-cErr:
-			if err != nil {
-				log.Printf("Connection Lost: %s", err)
-			}
-			if !ok {
-				log.Printf("Waiting %d seconds before reconnect attempt", 5)
-				time.Sleep(5 * time.Second)
-			}
-			conn, connErr, e := ep.DialRabbit(add)
-			if e != nil {
-				log.Printf("Can't Reconnect: %s", e)
-				break
-			}
-			cErr = connErr
-			ch, e = conn.Channel()
-			if err != nil {
-				log.Printf("Can't create channel: %s", e)
-				log.Printf("Fatal Repeater Connection Error: %s", err)
-				return
-			}
-			defer ch.Close()
-
-		case r := <-req:
-			a, _ := add.GetAddress()
-			log.Printf("repeat to: %s:%d/%s | %s", a.Host, a.Port, r.ex, string(r.d.Body[:]))
-			r.resp <- publishMessage(ch, r.ex, r.d)
-		}
-	}
+	return publishMessage(ch, ex, d)
 }
 
 func publishMessage(ch *amqp.Channel, ex string, d amqp.Delivery) error {
