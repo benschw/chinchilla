@@ -89,13 +89,14 @@ func repeaterDeMux(add config.RabbitAddressProvider, req chan PublishRequest) {
 			defer ch.Close()
 
 		case r := <-req:
+			a, _ := add.GetAddress()
+			log.Printf("repeat to: %s:%d/%s | %s", a.Host, a.Port, r.ex, string(r.d.Body[:]))
 			r.resp <- publishMessage(ch, r.ex, r.d)
 		}
 	}
 }
 
 func publishMessage(ch *amqp.Channel, ex string, d amqp.Delivery) error {
-	log.Printf("%s: %s", ex, string(d.Body[:]))
 
 	err := ch.ExchangeDeclare(
 		ex,      // name
