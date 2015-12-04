@@ -3,6 +3,7 @@ package repeater
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/streadway/amqp"
@@ -39,6 +40,7 @@ func processMsg(d amqp.Delivery, cfg config.EndpointConfig, lib *RepeaterLib) (b
 	}
 
 	if err := lib.Repeat(d, connName, exchange); err != nil {
+		time.Sleep(2000 * time.Millisecond)
 		// nack/requeue
 		return true, err
 	}
