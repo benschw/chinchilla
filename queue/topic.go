@@ -2,7 +2,6 @@ package queue
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/benschw/chinchilla/config"
 	"github.com/streadway/amqp"
@@ -76,8 +75,6 @@ func (d *Topic) Consume(ch *amqp.Channel, cfg config.EndpointConfig) (<-chan amq
 	if err != nil {
 		return nil, err
 	}
-
-	log.Printf("Binding %s to %s with %s", q.Name, exchangeName, topicName)
 
 	msgs, err := ch.Consume(
 		q.Name, // queue
