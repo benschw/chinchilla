@@ -1,10 +1,7 @@
 {
 	"ImportPath": "github.com/benschw/chinchilla",
-	"GoVersion": "go1.5",
+	"GoVersion": "go1.6",
 	"GodepVersion": "v62",
-	"Packages": [
-		"./..."
-	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/benschw/opin-go/config",

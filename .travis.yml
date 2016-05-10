@@ -9,9 +9,6 @@ services:
   - rabbitmq
 
 
-install:
-  - go get -t
-
 script:
   - go test ./...
   - go build
