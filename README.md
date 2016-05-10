@@ -19,21 +19,27 @@ reflect the new configuration.
 
 ### terminal 1
 
-	go build
 	./consul.sh
 
 ### terminal 2
 
-	 SRVLB_HOST=127.0.0.1:8600 ./chinchilla -secret-keyring ./test-keys/.secring.gpg
+	# install some endpoints
+	./fixture-data.sh 
+	
+	# build and start the service
+	go build
+	SRVLB_HOST=127.0.0.1:8600 ./chinchilla -secret-keyring ./test-keys/.secring.gpg
 
 
 ### terminal 3
 
+	# run a mock rest service
 	go run ./example/cmd/server/serve.go
 
 
 ### terminal 4
 
+	# publish some messages to flow through the system
 	go run ./example/cmd/publisher/publish.go -queue demo.foo
 	go run ./example/cmd/publisher/publish.go -queue demo.bar
 	go run ./example/cmd/publisher/publish.go -queue demo.bar -body "hello galaxy"
