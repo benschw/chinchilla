@@ -8,6 +8,7 @@ machine:
     - rabbitmq-server
 dependencies:
   post:
+    - go version
     - go get github.com/golang/lint/golint
   override:
     - go build
