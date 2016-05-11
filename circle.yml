@@ -7,10 +7,9 @@ machine:
   services:
     - rabbitmq-server
 dependencies:
-  post:
+  override:
     - go version
     - go get github.com/golang/lint/golint
-  override:
     - go build
     - gzip chinchilla
 test:
