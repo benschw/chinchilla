@@ -1,6 +1,7 @@
 general:
   artifacts:
     - "chinchilla.gz"
+    - "chinchilla"
 machine:
   environment:
     GO15VENDOREXPERIMENT: 1
