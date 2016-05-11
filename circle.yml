@@ -17,4 +17,12 @@ test:
     - go vet $(go list ./... | grep -v vendor)
   override:
     - go test $(go list ./... | grep -v vendor)
-
+deployment:
+  release:
+    tag: /v[0-9]+(\.[0-9]+)*/
+    owner: benschw
+    commands:
+      — go get github.com/mitchellh/gox
+      — go get github.com/tcnksm/ghr
+      — gox -ldflags "-X main.Version $BUILD_VERSION -X main.BuildDate $BUILD_DATE" -output "dist/chinchilla_{{.OS}}_{{.Arch}}"
+      — ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace `git describe --tags` dist/
