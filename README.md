@@ -1,4 +1,8 @@
-[![Build Status](https://travis-ci.org/benschw/chinchilla.svg?branch=master)](https://travis-ci.org/benschw/chinchilla)
+
+[![Circle CI](https://circleci.com/gh/benschw/chinchilla.svg?style=svg)](https://circleci.com/gh/benschw/chinchilla)
+
+
+
 [Download](https://drone.io/github.com/benschw/chinchilla/files/chinchilla.gz)
 
 # Chinchilla
