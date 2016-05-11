@@ -8,7 +8,7 @@ machine:
   services:
     - rabbitmq-server
 dependencies:
-  override:
+  pre:
     - go get github.com/golang/lint/golint
     - mkdir -p "$GOPATH/src/$IMPORT_PATH"
     - rsync -azC --delete ./ "$GOPATH/src/$IMPORT_PATH/"
