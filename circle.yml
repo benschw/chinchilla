@@ -26,5 +26,4 @@ deployment:
     owner: benschw
     commands:
       - go get github.com/tcnksm/ghr
-      - git describe --tags
       - ghr --debug -t $GITHUB_TOKEN -u benschw -r chinchilla --replace `git describe --tags` dist/
