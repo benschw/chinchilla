@@ -104,7 +104,6 @@ func (m *EndpointApp) Run() error {
 			return nil
 		}
 	}
-	return nil
 }
 
 func (m *EndpointApp) Reload() {

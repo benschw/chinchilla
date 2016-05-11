@@ -32,5 +32,4 @@ func countMessages(msgs <-chan amqp.Delivery) int {
 			return cnt
 		}
 	}
-	return 0
 }
