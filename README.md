@@ -1,9 +1,9 @@
 
 [![Circle CI](https://circleci.com/gh/benschw/chinchilla.svg?style=svg)](https://circleci.com/gh/benschw/chinchilla)
 
+[Latest build](https://circle-artifacts.com/gh/benschw/chinchilla/latest/artifacts/0/home/ubuntu/.go_project/src/github.com/benschw/chinchilla/dist/chinchilla_linux_amd64.gz)
 
-
-[Download](https://drone.io/github.com/benschw/chinchilla/files/chinchilla.gz)
+[Latest Release](https://github.com/benschw/chinchilla/releases/latest)
 
 # Chinchilla
 
