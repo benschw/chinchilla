@@ -1,8 +1,7 @@
 general:
   artifacts:
     - "chinchilla.gz"
-    - "chinchilla"
-    - "dist/*"
+    - "dist"
 machine:
   environment:
     GO15VENDOREXPERIMENT: 1
@@ -13,8 +12,9 @@ dependencies:
     - go get github.com/golang/lint/golint
     - go get github.com/mitchellh/gox
   post:
-    - gox -ldflags "-X main.Version=$BUILD_VERSION -X main.BuildDate=$BUILD_DATE" -output "dist/chinchilla_{{.OS}}_{{.Arch}}" -osarch="linux/amd64"
     - gzip chinchilla
+    - gox -ldflags "-X main.Version=$BUILD_VERSION -X main.BuildDate=$BUILD_DATE" -output "dist/chinchilla_{{.OS}}_{{.Arch}}" -osarch="linux/amd64"
+    - gzip dist/chinchilla_linux_amd64
 test:
   pre:
     - go vet $(go list ./... | grep -v vendor)
