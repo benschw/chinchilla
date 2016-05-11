@@ -11,30 +11,30 @@ import (
 )
 
 type Config struct {
-	Connection ConnectionConfig `json: "connection"`
-	Endpoints  []EndpointConfig `json: "endpoints"`
+	Connection ConnectionConfig `json:"connection"`
+	Endpoints  []EndpointConfig `json:"endpoints"`
 }
 
 type ConnectionConfig struct {
-	User        string `json: "user"`
-	Password    string `json: "password"`
-	ServiceName string `json: "servicename"`
-	Host        string `json: "host"`
-	Port        uint16 `json: "port"`
-	VHost       string `json: "vhost"`
+	User        string `json:"user"`
+	Password    string `json:"password"`
+	ServiceName string `json:"servicename"`
+	Host        string `json:"host"`
+	Port        uint16 `json:"port"`
+	VHost       string `json:"vhost"`
 }
 
 type EndpointConfig struct {
 	Lb               lb.GenericLoadBalancer
-	Name             string                      `json: "name"`
-	ServiceHost      string                      `json: "servicehost"`
-	ServiceName      string                      `json: "servicename"`
-	Uri              string                      `json: "uri"`
-	Method           string                      `json: "method"`
-	Prefetch         int                         `json: "prefetch"`
-	ConsumerStrategy string                      `json: "consumerstrategy"`
-	DeliveryStrategy string                      `json: "deliverystrategy"`
-	QueueConfig      map[interface{}]interface{} `json: "queueconfig"`
+	Name             string                      `json:"name"`
+	ServiceHost      string                      `json:"servicehost"`
+	ServiceName      string                      `json:"servicename"`
+	Uri              string                      `json:"uri"`
+	Method           string                      `json:"method"`
+	Prefetch         int                         `json:"prefetch"`
+	ConsumerStrategy string                      `json:"consumerstrategy"`
+	DeliveryStrategy string                      `json:"deliverystrategy"`
+	QueueConfig      map[interface{}]interface{} `json:"queueconfig"`
 }
 
 func (c *EndpointConfig) Equals(cfg EndpointConfig) bool {
