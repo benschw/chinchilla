@@ -2,6 +2,7 @@ general:
   artifacts:
     - "chinchilla.gz"
     - "chinchilla"
+    - "dist/*"
 machine:
   environment:
     GO15VENDOREXPERIMENT: 1
@@ -10,7 +11,9 @@ machine:
 dependencies:
   pre:
     - go get github.com/golang/lint/golint
+    - go get github.com/mitchellh/gox
   post:
+    - gox -ldflags "-X main.Version=$BUILD_VERSION -X main.BuildDate=$BUILD_DATE" -output "dist/chinchilla_{{.OS}}_{{.Arch}}" -osarch="linux/amd64"
     - gzip chinchilla
 test:
   pre:
@@ -22,7 +25,5 @@ deployment:
     tag: /v[0-9]+(\.[0-9]+)*/
     owner: benschw
     commands:
-      - go get github.com/mitchellh/gox
       - go get github.com/tcnksm/ghr
-      - gox -ldflags "-X main.Version=$BUILD_VERSION -X main.BuildDate=$BUILD_DATE" -output "dist/chinchilla_{{.OS}}_{{.Arch}}" -osarch="linux/amd64"
-      - ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace `git describe --tags` dist/
+      - ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace `git describe --tags` dist/ --debug
