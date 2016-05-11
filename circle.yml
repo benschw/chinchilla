@@ -1,3 +1,6 @@
+general:
+  artifacts:
+    - "chinchilla.gz"
 machine:
   environment:
     GO15VENDOREXPERIMENT: 1
@@ -5,9 +8,10 @@ machine:
     - rabbitmq-server
 dependencies:
   post:
-    # install golint
     - go get github.com/golang/lint/golint
-
+  override:
+    - go build
+    - gzip chinchilla
 test:
   pre:
     - go vet $(go list ./... | grep -v vendor)
