@@ -29,24 +29,30 @@
 		},
 		{
 			"ImportPath": "github.com/codahale/hdrhistogram",
-			"Rev": "360314142131c2043d1346f197f86435b287c6da"
+			"Rev": "f8ad88b59a584afeee9d334eff879b104439117b"
 		},
 		{
 			"ImportPath": "github.com/codahale/metrics",
 			"Rev": "dbbe66805ef99a7bdc12d2e4f2c543e11b3a19e1"
 		},
 		{
+			"ImportPath": "github.com/davecgh/go-spew/spew",
+			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
+		},
+		{
 			"ImportPath": "github.com/gorilla/context",
-			"Rev": "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
+			"Comment": "v1.1-2-ga8d44e7",
+			"Rev": "a8d44e7d8e4d532b6a27a02dd82abb31cc1b01bd"
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "acf3be1b335c8ce30b2c8d51300984666f0ceefa"
+			"Comment": "v1.1-7-g9c19ed5",
+			"Rev": "9c19ed558d5df4da88e2ade9c8940d742aef0e7e"
 		},
 		{
 			"ImportPath": "github.com/hashicorp/consul/api",
-			"Comment": "v0.6.4-205-ga885f1b",
-			"Rev": "a885f1bdff2ae3c39a3ea6d84dabc24775831e1d"
+			"Comment": "v0.6.4-289-gfd63a81",
+			"Rev": "fd63a81706a8df6329fc0498f1c467172afbc092"
 		},
 		{
 			"ImportPath": "github.com/hashicorp/go-cleanhttp",
@@ -54,20 +60,25 @@
 		},
 		{
 			"ImportPath": "github.com/hashicorp/serf/coordinate",
-			"Comment": "v0.7.0-53-gc0a8410",
-			"Rev": "c0a8410f1212f17ed35318bae56e8956dfe1ddfa"
+			"Comment": "v0.7.0-58-gdefb069",
+			"Rev": "defb069b1bad9f7cdebc647810cb6ae398a1b617"
 		},
 		{
 			"ImportPath": "github.com/hydrogen18/stoppableListener",
-			"Rev": "2eebd04b47ff393f4bc50b7fcacf8f048994c6fd"
+			"Rev": "dadc9ccc400c712e5a316107a5c462863919e579"
 		},
 		{
 			"ImportPath": "github.com/miekg/dns",
-			"Rev": "b5f8285e2ab8f825c92ba68ddbbfe55c534b1064"
+			"Rev": "b5deb9f6c09fdf6f81acb98398bff176d2b75904"
+		},
+		{
+			"ImportPath": "github.com/pmezard/go-difflib/difflib",
+			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
 		},
 		{
 			"ImportPath": "github.com/satori/go.uuid",
-			"Rev": "d41af8bb6a7704f00bc3b7cba9355ae6a5a80048"
+			"Comment": "v1.0.0",
+			"Rev": "f9ab0dce87d815821e221626b772e3475a0d2749"
 		},
 		{
 			"ImportPath": "github.com/streadway/amqp",
@@ -75,8 +86,8 @@
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/assert",
-			"Comment": "v1.0-17-g089c718",
-			"Rev": "089c7181b8c728499929ff09b62d3fdd8df8adff"
+			"Comment": "v1.1.3-16-g6cb3b85",
+			"Rev": "6cb3b85ef5a0efef77caef88363ec4d4b5c0976d"
 		},
 		{
 			"ImportPath": "github.com/xordataexchange/crypt/encoding/secconf",
@@ -85,31 +96,31 @@
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/cast5",
-			"Rev": "3fbbcd23f1cb824e69491a5930cfeff09b12f4d2"
+			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp",
-			"Rev": "3fbbcd23f1cb824e69491a5930cfeff09b12f4d2"
+			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp/armor",
-			"Rev": "3fbbcd23f1cb824e69491a5930cfeff09b12f4d2"
+			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp/elgamal",
-			"Rev": "3fbbcd23f1cb824e69491a5930cfeff09b12f4d2"
+			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp/errors",
-			"Rev": "3fbbcd23f1cb824e69491a5930cfeff09b12f4d2"
+			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp/packet",
-			"Rev": "3fbbcd23f1cb824e69491a5930cfeff09b12f4d2"
+			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp/s2k",
-			"Rev": "3fbbcd23f1cb824e69491a5930cfeff09b12f4d2"
+			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
