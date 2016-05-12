@@ -27,10 +27,10 @@ deploy:
     access_key_id: AKIAJWN36CZNBCQXFFTQ
     secret_access_key:
       secure: CzIrPnL3l9jyT/2i+fQHbKzjTV9HwOgCdepXBTnMtihmhKyo+alS0SRQiaZe25FN6l4esSI7+kyMBM0bmXT5BBt7slc+cC0Kq8y4OH0XtKVcLnVvQ9spR0eqAxtg6AzFOPPU+s/j6EroGfc/8U+JozfJFnLg180umdEfpYigfHsCkaBEFyn8i0jqW8GoOJ/P/z5vvauoouRs3H0Y/sEBSj1ZHxL1V6RgHcH4btj8XnUBShbY9npGPpJwY3et0oAoUefjiw3EmXpS2o68TBhxicuToeCg22RO5cwsspJI+vvZ/H6K6TNSOfJ14rpAyv6ITJrZTXW2EbBJ+0Nc1ZeZuUdMmbKZi5OLRk/w+yffOjD3XXxdYwZthg+WwBumQoP91AoymMRjbo8+cPCmSVcBkBk8r0oOyc4nCCWcpLBQ7/x2iCMwm2Bt1jGDm42G3KZ5pTvBToYsH7QVVsdOv1IDZE/WkX/oyUVRhWSR1z9JM6GkgXTjBB0QOiVaQyYw2D8VdZ9MjYIbkWNZws1xZpjGjPP/1rMUfmn8/GJgMDWY5rar4BnFGjC8+ageuAoUaBC5eqHKZA9muFhQ2t0rKe9xALn1zSAi8mM5MFMnucAUSDbzlpOa4F2+8awLkO9bj4gBijiUzrzsfvisuDmmGQ0RdaDjO1KmO+TtX1vZeEkDcFg=
-    bucket: benschw-artifacts
+    bucket: dl.fligl.io
     skip_cleanup: true
     local-dir: dist
-    upload-dir: chinchilla
+    upload-dir: artifacts/chinchilla
     acl: public_read
   - provider: releases
     api_key:
