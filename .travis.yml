@@ -20,6 +20,7 @@ script:
   - go test $(go list ./... | grep -v '/vendor/')
   - gox -ldflags "-X main.Version=$TRAVIS_BUILD_NUMBER" -output "chinchilla_{{.OS}}_{{.Arch}}" -osarch="linux/amd64"
   - gzip chinchilla_linux_amd64
+  - mkdir -p dist
   - cp chinchilla_linux_amd64.gz dist/chinchilla_linux_amd64_latest.gz
   - cp chinchilla_linux_amd64.gz dist/chinchilla_linux_amd64_$TRAVIS_BUILD_NUMBER.gz
 
