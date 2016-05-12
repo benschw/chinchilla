@@ -17,10 +17,9 @@ before_install:
 script:
   - go vet $(go list ./... | grep -v vendor)
   - go test $(go list ./... | grep -v '/vendor/')
-
-after_success:
   - gox -ldflags "-X main.Version=$TRAVIS_BUILD_NUMBER" -output "dist/chinchilla_{{.OS}}_{{.Arch}}" -osarch="linux/amd64"
   - gzip dist/chinchilla_linux_amd64
+
 
 deploy:
   - provider: s3
