@@ -103,3 +103,6 @@ decrypting rabbitmq credentials in your configuration backend.
 	%secring .secring.gpg
 	%commit
 	%echo done
+
+
+
