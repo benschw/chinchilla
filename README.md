@@ -1,9 +1,9 @@
+[![Build Status](https://travis-ci.org/benschw/chinchilla.svg?branch=master)](https://travis-ci.org/benschw/chinchilla)
 
-[![Circle CI](https://circleci.com/gh/benschw/chinchilla.svg?style=svg)](https://circleci.com/gh/benschw/chinchilla)
+[latest build](http://dl.fligl.io/artifacts/chinchilla/chinchilla_linux_amd64_latest.gz)
 
-[Latest build](https://circle-artifacts.com/gh/benschw/chinchilla/latest/artifacts/0/home/ubuntu/.go_project/src/github.com/benschw/chinchilla/dist/chinchilla_linux_amd64.gz)
+[downloads](http://dl.fligl.io/#/chinchilla)
 
-[Latest Release](https://github.com/benschw/chinchilla/releases/latest)
 
 # Chinchilla
 
