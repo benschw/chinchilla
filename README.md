@@ -1,8 +1,7 @@
 [![Build Status](https://travis-ci.org/benschw/chinchilla.svg?branch=master)](https://travis-ci.org/benschw/chinchilla)
+[![Download Latest](https://img.shields.io/badge/download-latest-blue.svg)](http://dl.fligl.io/artifacts/chinchilla/chinchilla_linux_amd64_latest.gz)
+[![Releases](https://img.shields.io/badge/download-release-blue.svg)](http://dl.fligl.io/#/chinchilla)
 
-[latest build](http://dl.fligl.io/artifacts/chinchilla/chinchilla_linux_amd64_latest.gz)
-
-[downloads](http://dl.fligl.io/#/chinchilla)
 
 
 # Chinchilla
