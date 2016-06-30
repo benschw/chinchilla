@@ -19,7 +19,7 @@ func (p *DefaultDeliverer) Deliver(d amqp.Delivery, cfg config.EndpointConfig) {
 	if !ok {
 		queueName = "(unknown)"
 	}
-	log.Printf("Received a message on %s: %s", queueName, string(d.Body))
+	log.Printf("Received a message on %s", queueName)
 	requeue, err := processMsg(d, cfg)
 	if err != nil {
 		log.Printf("%s: %s", cfg.Name, err)
