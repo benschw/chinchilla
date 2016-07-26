@@ -16,6 +16,7 @@ var useSyslog = flag.Bool("syslog", false, "log to syslog")
 var logPath = flag.String("log-path", "", "path to log file")
 var metricsBind = flag.String("metrics", ":8081", "address to bind metrics to")
 var configPath = flag.String("config", "", "path to yaml config. omit to use consul")
+var conConfigPath = flag.String("connection-config", "", "path to yaml connection config. use consul for endpoint configs.")
 var consulPath = flag.String("consul-path", "chinchilla", "consul key path to find configuration in")
 var keyring = flag.String("keyring", "", "path to armored public keyring")
 var secretKeyring = flag.String("secret-keyring", "", "path to armored secret keyring")
@@ -75,7 +76,7 @@ func main() {
 
 	if flag.NArg() == 0 {
 		// If no subcommands, run daemon
-		if err := StartDaemon(*configPath, *consulPath, *secretKeyring); err != nil {
+		if err := StartDaemon(*configPath, *conConfigPath, *consulPath, *secretKeyring); err != nil {
 			log.Println(err)
 		}
 		os.Exit(1)
