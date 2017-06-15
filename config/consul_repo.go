@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/benschw/srv-lb/lb"
@@ -41,21 +40,4 @@ func (r *ConsulRepo) GetEndpoints() ([]EndpointConfig, error) {
 		arr = append(arr, *epCfg)
 	}
 	return arr, nil
-}
-
-func (r *ConsulRepo) GetAddress() (RabbitAddress, error) {
-	kv := r.Client.KV()
-	k := r.ConsulPath + "/connection.yaml"
-	p, _, err := kv.Get(k, nil)
-	connCfg := &ConnectionConfig{}
-	if err != nil {
-		return RabbitAddress{}, err
-	}
-	if p == nil {
-		return RabbitAddress{}, fmt.Errorf("connection settings not found in consul: '%s'", k)
-	}
-	if err = yaml.Unmarshal(p.Value, connCfg); err != nil {
-		return RabbitAddress{}, fmt.Errorf("Error unmarshaling: %s", err) //err
-	}
-	return connectionConfigToAddress(*connCfg, r.Lb)
 }

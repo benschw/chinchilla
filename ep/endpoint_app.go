@@ -36,6 +36,7 @@ type EndpointApp struct {
 func (m *EndpointApp) connect() error {
 	conn, connErr, err := DialRabbit(m.ap)
 	if err != nil {
+		log.Println("Problem connecting to Rabbitmq")
 		return err
 	}
 	metrics.Counter(metricName("connect")).AddN(1)

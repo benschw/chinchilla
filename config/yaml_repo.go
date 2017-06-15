@@ -24,11 +24,3 @@ func (r *YamlRepo) GetEndpoints() ([]EndpointConfig, error) {
 	return cfg.Endpoints, nil
 }
 
-func (r *YamlRepo) GetAddress() (RabbitAddress, error) {
-	var cfg Config
-
-	if err := config.Bind(r.Path, &cfg); err != nil {
-		return RabbitAddress{}, err
-	}
-	return connectionConfigToAddress(cfg.Connection, r.Lb)
-}

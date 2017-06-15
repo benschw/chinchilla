@@ -7,7 +7,10 @@ test:
 	go test $(go list ./... | grep -v '/vendor/')
 
 build: 
-	go build
+	gox -output "chinchilla" -osarch="linux/amd64"
+
+docker: build
+	docker build -t benschw/chinchilla .
 
 package:
 	gox -ldflags "-X main.Version=$TRAVIS_BUILD_NUMBER" -output "chinchilla_{{.OS}}_{{.Arch}}" -osarch="linux/amd64"

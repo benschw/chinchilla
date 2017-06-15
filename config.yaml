@@ -1,10 +1,3 @@
-connection:
-  user: guest
-  password: guest
-  host: localhost
-  port: 5672
-  vhost: /
-
 endpoints:
   -
     name: Foo
@@ -29,25 +22,3 @@ endpoints:
     queueconfig:
       prefetch: 5
       queuename: demo.slow
-disabled:
-  -
-    name: Bar
-    servicehost: http://localhost:8080
-    uri: /bar
-    method: POST
-    queueconfig:
-      queuename: demo.bar
-  -
-    name: Bad 
-    servicehost: http://localhost:8080
-    uri: /bad
-    method: POST
-    queueconfig:
-      queuename: demo.bad
-  -
-    name: RealBad 
-    servicehost: http://localhost:9876
-    uri: /dneaddy
-    method: POST
-    queueconfig:
-      queuename: demo.realbad

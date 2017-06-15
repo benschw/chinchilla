@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 
 	"github.com/benschw/srv-lb/lb"
@@ -14,12 +13,12 @@ type Config struct {
 }
 
 type ConnectionConfig struct {
-	User        string `json:"user"`
-	Password    string `json:"password"`
-	ServiceName string `json:"servicename"`
-	Host        string `json:"host"`
-	Port        uint16 `json:"port"`
-	VHost       string `json:"vhost"`
+	User        string
+	Password    string
+	ServiceName string
+	Host        string
+	Port        uint16
+	VHost       string
 }
 
 type EndpointConfig struct {
@@ -64,31 +63,7 @@ type RabbitAddress struct {
 }
 
 func (a *RabbitAddress) String() string {
-	user := a.User
-	pass := a.Password
-
-	connStr := fmt.Sprintf("amqp://%s:%s@%s:%d/%s", user, pass, a.Host, a.Port, a.VHost)
-	return connStr
+	str := fmt.Sprintf("amqp://%s:%s@%s:%d/%s", a.User, a.Password, a.Host, a.Port, a.VHost)
+	return str
 }
 
-// repo helper
-func connectionConfigToAddress(c ConnectionConfig, lb lb.GenericLoadBalancer) (RabbitAddress, error) {
-	add := RabbitAddress{
-		User:     c.User,
-		Password: c.Password,
-		Host:     c.Host,
-		Port:     c.Port,
-		VHost:    c.VHost,
-	}
-
-	if c.ServiceName != "" {
-		a, err := lb.Next("rabbitmq.service.consul")
-		if err != nil {
-			return add, err
-		}
-		add.Host = a.Address
-		add.Port = a.Port
-	}
-	log.Printf("rabbitmq address: %s:%d ", add.Host, add.Port)
-	return add, nil
-}
