@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -10,46 +9,17 @@ import (
 	_ "github.com/benschw/chinchilla/queue"
 	"github.com/benschw/srv-lb/lb"
 	"github.com/hashicorp/consul/api"
-	"github.com/xordataexchange/crypt/encoding/secconf"
 )
 
-func Encrypt(kPath string, in string) (string, error) {
-	kr, err := os.Open(kPath)
-	if err != nil {
-		return "", err
-	}
-	bytes, err := secconf.Encode([]byte(in), kr)
-	return string(bytes[:]), nil
-}
-func Decrypt(sKPath string, encrypted string) (string, error) {
-	kr, err := os.Open(sKPath)
-	if err != nil {
-		return "", err
-	}
-	bytes, err := secconf.Decode([]byte(encrypted), kr)
-	return string(bytes[:]), nil
-}
-func StartDaemon(configPath string, conConfigPath string, consulPath string, sKPath string) error {
+func StartDaemon(configPath string, conConfigPath string, consulPath string) error {
 
-	var kr []byte
-	if sKPath != "" {
-		kRing, err := os.Open(sKPath)
-		if err != nil {
-			return err
-		}
-		bytes, err := ioutil.ReadAll(kRing)
-		if err != nil {
-			return err
-		}
-		kr = bytes
-	}
 	lb := lb.NewGeneric(lb.DefaultConfig())
 
 	var ap config.RabbitAddressProvider
 	var epp config.EndpointsProvider
 
 	if configPath != "" {
-		repo := &config.YamlRepo{Kr: kr, Lb: lb, Path: configPath}
+		repo := &config.YamlRepo{Lb: lb, Path: configPath}
 
 		ap = repo
 		epp = repo
@@ -59,13 +29,13 @@ func StartDaemon(configPath string, conConfigPath string, consulPath string, sKP
 			log.Println(err)
 			os.Exit(1)
 		}
-		repo := &config.ConsulRepo{ConsulPath: consulPath, Kr: kr, Lb: lb, Client: client}
+		repo := &config.ConsulRepo{ConsulPath: consulPath, Lb: lb, Client: client}
 		ap = repo
 		epp = repo
 	}
 
 	if conConfigPath != "" {
-		ap = &config.YamlRepo{Kr: kr, Lb: lb, Path: conConfigPath}
+		ap = &config.YamlRepo{Lb: lb, Path: conConfigPath}
 	}
 
 	svc := ep.NewApp(ap, epp)

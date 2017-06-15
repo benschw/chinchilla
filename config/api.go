@@ -1,13 +1,11 @@
 package config
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"reflect"
 
 	"github.com/benschw/srv-lb/lb"
-	"github.com/xordataexchange/crypt/encoding/secconf"
 )
 
 type Config struct {
@@ -58,7 +56,6 @@ func (c *EndpointConfig) Url() (string, error) {
 }
 
 type RabbitAddress struct {
-	KeyRing  []byte
 	User     string
 	Password string
 	Host     string
@@ -70,31 +67,13 @@ func (a *RabbitAddress) String() string {
 	user := a.User
 	pass := a.Password
 
-	// if keyring is supplied, decrypt username & password
-	if a.KeyRing != nil {
-		u, err := secconf.Decode([]byte(a.User), bytes.NewBuffer(a.KeyRing))
-		if err != nil {
-			user = ""
-			log.Printf("Username decryption error: %s", err)
-		}
-		p, err := secconf.Decode([]byte(a.Password), bytes.NewBuffer(a.KeyRing))
-		if err != nil {
-			pass = ""
-			log.Printf("Password decryption error: %s", err)
-		}
-		user = string(u[:])
-		pass = string(p[:])
-	} else {
-		log.Println("No keyring supplied, treating rabbitmq credentials as plain text")
-	}
 	connStr := fmt.Sprintf("amqp://%s:%s@%s:%d/%s", user, pass, a.Host, a.Port, a.VHost)
 	return connStr
 }
 
 // repo helper
-func connectionConfigToAddress(kr []byte, c ConnectionConfig, lb lb.GenericLoadBalancer) (RabbitAddress, error) {
+func connectionConfigToAddress(c ConnectionConfig, lb lb.GenericLoadBalancer) (RabbitAddress, error) {
 	add := RabbitAddress{
-		KeyRing:  kr,
 		User:     c.User,
 		Password: c.Password,
 		Host:     c.Host,

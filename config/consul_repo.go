@@ -11,7 +11,6 @@ import (
 
 // Load config from Consul
 type ConsulRepo struct {
-	Kr         []byte
 	Lb         lb.GenericLoadBalancer
 	Client     *api.Client
 	ConsulPath string
@@ -58,5 +57,5 @@ func (r *ConsulRepo) GetAddress() (RabbitAddress, error) {
 	if err = yaml.Unmarshal(p.Value, connCfg); err != nil {
 		return RabbitAddress{}, fmt.Errorf("Error unmarshaling: %s", err) //err
 	}
-	return connectionConfigToAddress(r.Kr, *connCfg, r.Lb)
+	return connectionConfigToAddress(*connCfg, r.Lb)
 }
