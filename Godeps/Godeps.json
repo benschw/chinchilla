@@ -1,130 +1,126 @@
 {
 	"ImportPath": "github.com/benschw/chinchilla",
-	"GoVersion": "go1.6",
-	"GodepVersion": "v62",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
+	"Packages": [
+		"github.com/hashicorp/vault/api"
+	],
 	"Deps": [
 		{
-			"ImportPath": "github.com/benschw/opin-go/config",
-			"Rev": "039c74cdf894f6182b1aa472be750ffa221bf361"
+			"ImportPath": "github.com/fatih/structs",
+			"Comment": "v1.0",
+			"Rev": "a720dfa8df582c51dee1b36feabb906bde1588bd"
 		},
 		{
-			"ImportPath": "github.com/benschw/opin-go/ophttp",
-			"Rev": "039c74cdf894f6182b1aa472be750ffa221bf361"
-		},
-		{
-			"ImportPath": "github.com/benschw/opin-go/rando",
-			"Rev": "039c74cdf894f6182b1aa472be750ffa221bf361"
-		},
-		{
-			"ImportPath": "github.com/benschw/opin-go/rest",
-			"Rev": "039c74cdf894f6182b1aa472be750ffa221bf361"
-		},
-		{
-			"ImportPath": "github.com/benschw/srv-lb/dns",
-			"Rev": "9a57cc299d0c19664e2a82b54418d42388901717"
-		},
-		{
-			"ImportPath": "github.com/benschw/srv-lb/lb",
-			"Rev": "9a57cc299d0c19664e2a82b54418d42388901717"
-		},
-		{
-			"ImportPath": "github.com/codahale/hdrhistogram",
-			"Rev": "f8ad88b59a584afeee9d334eff879b104439117b"
-		},
-		{
-			"ImportPath": "github.com/codahale/metrics",
-			"Rev": "dbbe66805ef99a7bdc12d2e4f2c543e11b3a19e1"
-		},
-		{
-			"ImportPath": "github.com/davecgh/go-spew/spew",
-			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
-		},
-		{
-			"ImportPath": "github.com/gorilla/context",
-			"Comment": "v1.1-2-ga8d44e7",
-			"Rev": "a8d44e7d8e4d532b6a27a02dd82abb31cc1b01bd"
-		},
-		{
-			"ImportPath": "github.com/gorilla/mux",
-			"Comment": "v1.1-7-g9c19ed5",
-			"Rev": "9c19ed558d5df4da88e2ade9c8940d742aef0e7e"
-		},
-		{
-			"ImportPath": "github.com/hashicorp/consul/api",
-			"Comment": "v0.6.4-289-gfd63a81",
-			"Rev": "fd63a81706a8df6329fc0498f1c467172afbc092"
+			"ImportPath": "github.com/hashicorp/errwrap",
+			"Rev": "7554cd9344cec97297fa6649b055a8c98c2a1e55"
 		},
 		{
 			"ImportPath": "github.com/hashicorp/go-cleanhttp",
 			"Rev": "ad28ea4487f05916463e2423a55166280e8254b5"
 		},
 		{
-			"ImportPath": "github.com/hashicorp/serf/coordinate",
-			"Comment": "v0.7.0-58-gdefb069",
-			"Rev": "defb069b1bad9f7cdebc647810cb6ae398a1b617"
+			"ImportPath": "github.com/hashicorp/go-multierror",
+			"Rev": "ed905158d87462226a13fe39ddf685ea65f1c11f"
 		},
 		{
-			"ImportPath": "github.com/hydrogen18/stoppableListener",
-			"Rev": "dadc9ccc400c712e5a316107a5c462863919e579"
+			"ImportPath": "github.com/hashicorp/go-rootcerts",
+			"Rev": "6bb64b370b90e7ef1fa532be9e591a81c3493e00"
 		},
 		{
-			"ImportPath": "github.com/miekg/dns",
-			"Rev": "b5deb9f6c09fdf6f81acb98398bff176d2b75904"
+			"ImportPath": "github.com/hashicorp/hcl",
+			"Rev": "630949a3c5fa3c613328e1b8256052cbc2327c9b"
 		},
 		{
-			"ImportPath": "github.com/pmezard/go-difflib/difflib",
-			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
+			"ImportPath": "github.com/hashicorp/hcl/hcl/ast",
+			"Rev": "630949a3c5fa3c613328e1b8256052cbc2327c9b"
 		},
 		{
-			"ImportPath": "github.com/satori/go.uuid",
-			"Comment": "v1.0.0",
-			"Rev": "f9ab0dce87d815821e221626b772e3475a0d2749"
+			"ImportPath": "github.com/hashicorp/hcl/hcl/parser",
+			"Rev": "630949a3c5fa3c613328e1b8256052cbc2327c9b"
 		},
 		{
-			"ImportPath": "github.com/streadway/amqp",
-			"Rev": "2e25825abdbd7752ff08b270d313b93519a0a232"
+			"ImportPath": "github.com/hashicorp/hcl/hcl/scanner",
+			"Rev": "630949a3c5fa3c613328e1b8256052cbc2327c9b"
 		},
 		{
-			"ImportPath": "github.com/stretchr/testify/assert",
-			"Comment": "v1.1.3-16-g6cb3b85",
-			"Rev": "6cb3b85ef5a0efef77caef88363ec4d4b5c0976d"
+			"ImportPath": "github.com/hashicorp/hcl/hcl/strconv",
+			"Rev": "630949a3c5fa3c613328e1b8256052cbc2327c9b"
 		},
 		{
-			"ImportPath": "github.com/xordataexchange/crypt/encoding/secconf",
-			"Comment": "v0.0.2-17-g749e360",
-			"Rev": "749e360c8f236773f28fc6d3ddfce4a470795227"
+			"ImportPath": "github.com/hashicorp/hcl/hcl/token",
+			"Rev": "630949a3c5fa3c613328e1b8256052cbc2327c9b"
 		},
 		{
-			"ImportPath": "golang.org/x/crypto/cast5",
-			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
+			"ImportPath": "github.com/hashicorp/hcl/json/parser",
+			"Rev": "630949a3c5fa3c613328e1b8256052cbc2327c9b"
 		},
 		{
-			"ImportPath": "golang.org/x/crypto/openpgp",
-			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
+			"ImportPath": "github.com/hashicorp/hcl/json/scanner",
+			"Rev": "630949a3c5fa3c613328e1b8256052cbc2327c9b"
 		},
 		{
-			"ImportPath": "golang.org/x/crypto/openpgp/armor",
-			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
+			"ImportPath": "github.com/hashicorp/hcl/json/token",
+			"Rev": "630949a3c5fa3c613328e1b8256052cbc2327c9b"
 		},
 		{
-			"ImportPath": "golang.org/x/crypto/openpgp/elgamal",
-			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
+			"ImportPath": "github.com/hashicorp/vault/api",
+			"Comment": "v0.7.0-88-g9d013a07",
+			"Rev": "9d013a0707a8fe9e1a891abcc4e3a2105bd97fcb"
 		},
 		{
-			"ImportPath": "golang.org/x/crypto/openpgp/errors",
-			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
+			"ImportPath": "github.com/hashicorp/vault/helper/compressutil",
+			"Comment": "v0.7.0-88-g9d013a07",
+			"Rev": "9d013a0707a8fe9e1a891abcc4e3a2105bd97fcb"
 		},
 		{
-			"ImportPath": "golang.org/x/crypto/openpgp/packet",
-			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
+			"ImportPath": "github.com/hashicorp/vault/helper/jsonutil",
+			"Comment": "v0.7.0-88-g9d013a07",
+			"Rev": "9d013a0707a8fe9e1a891abcc4e3a2105bd97fcb"
 		},
 		{
-			"ImportPath": "golang.org/x/crypto/openpgp/s2k",
-			"Rev": "b76c864ef1dca1d8f271f917c290cddcce3d9e0d"
+			"ImportPath": "github.com/mitchellh/go-homedir",
+			"Rev": "b8bc1bf767474819792c23f32d8286a45736f1c6"
 		},
 		{
-			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "a83829b6f1293c91addabc89d0571c246397bbf4"
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "53818660ed4955e899c0bcafa97299a388bd7c8e"
+		},
+		{
+			"ImportPath": "github.com/sethgrid/pester",
+			"Rev": "ad2265b06c1300b29bd9352e597121db34656d40"
+		},
+		{
+			"ImportPath": "golang.org/x/net/http2",
+			"Rev": "ffcf1bedda3b04ebb15a168a59800a73d6dc0f4d"
+		},
+		{
+			"ImportPath": "golang.org/x/net/http2/hpack",
+			"Rev": "ffcf1bedda3b04ebb15a168a59800a73d6dc0f4d"
+		},
+		{
+			"ImportPath": "golang.org/x/net/idna",
+			"Rev": "ffcf1bedda3b04ebb15a168a59800a73d6dc0f4d"
+		},
+		{
+			"ImportPath": "golang.org/x/net/lex/httplex",
+			"Rev": "ffcf1bedda3b04ebb15a168a59800a73d6dc0f4d"
+		},
+		{
+			"ImportPath": "golang.org/x/text/secure/bidirule",
+			"Rev": "f4b4367115ec2de254587813edaa901bc1c723a8"
+		},
+		{
+			"ImportPath": "golang.org/x/text/transform",
+			"Rev": "f4b4367115ec2de254587813edaa901bc1c723a8"
+		},
+		{
+			"ImportPath": "golang.org/x/text/unicode/bidi",
+			"Rev": "f4b4367115ec2de254587813edaa901bc1c723a8"
+		},
+		{
+			"ImportPath": "golang.org/x/text/unicode/norm",
+			"Rev": "f4b4367115ec2de254587813edaa901bc1c723a8"
 		}
 	]
 }
