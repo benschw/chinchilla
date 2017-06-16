@@ -11,8 +11,6 @@ import (
 )
 
 func getRabbitmqPasswordFromVault(l lb.GenericLoadBalancer, secretsPath string) (string, error) {
-	//	appRolePath := os.Getenv("VAULT_APPROLE_PATH")
-	//	secret := os.Getenv("VAULT_APPROLE_SECRET_ID")
 	v, err := getVaultClient(l)
 	if err != nil {
 		return "", err
@@ -44,11 +42,34 @@ func getVaultClient(l lb.GenericLoadBalancer) (*vaultapi.Logical, error) {
 
 	cfg := vaultapi.DefaultConfig()
 	cfg.Address = host
-
 	client, err := vaultapi.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
+	if appRolePath, ok := os.LookupEnv("VAULT_APPROLE_PATH"); ok {
+		log.Println("getting approle")
+		token := ""
+		roleId, err := getVaultRoleId(appRolePath)
+		if err != nil {
+			return nil, err
+		}
+		secretId := os.Getenv("VAULT_APPROLE_SECRET_ID")
+
+		resp, err := client.Logical().Write("auth/approle/login", map[string]interface{}{
+			"role_id":   roleId,
+			"secret_id": secretId,
+		})
+		if err != nil {
+			return nil, err
+		}
+		token = resp.Auth.ClientToken
+		client.SetToken(token)
+	}
+
 	vault := client.Logical()
 	return vault, nil
+}
+
+func getVaultRoleId(appRolePath string) (string, error) {
+	return "747e8ae2-f8ad-b32e-cf6a-329070efda5e", nil
 }
