@@ -9,6 +9,7 @@ import (
 	"os"
 
 	_ "expvar"
+
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
 	_ "github.com/benschw/chinchilla/queue"
@@ -19,6 +20,7 @@ import (
 var metricsBind = flag.String("metrics", ":8081", "address to bind metrics to")
 var configPath = flag.String("config", "", "path to yaml config. omit to use consul")
 var consulPath = flag.String("consul-path", "chinchilla", "consul key path to find configuration in")
+var secretsPath = flag.String("secrets-path", "secret/chinchilla", "vault secrets path to find rabbitmq password in")
 
 func init() {
 	flag.Usage = func() {
@@ -33,7 +35,6 @@ func init() {
 }
 
 func main() {
-
 
 	flag.Parse()
 
@@ -64,7 +65,7 @@ func main() {
 		epp = &config.ConsulRepo{ConsulPath: *consulPath, Lb: lb, Client: client}
 	}
 
-	rabbitAp, err := config.NewEnvRabbitAp(lb)
+	rabbitAp, err := config.NewEnvRabbitAp(lb, *secretsPath)
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)

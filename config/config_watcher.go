@@ -47,6 +47,7 @@ func (c *ConfigWatcher) Watch(ttl int) {
 	for {
 		if err := c.processProviders(); err != nil {
 			log.Println("Problem loading config, keeping old configuration")
+			log.Println(err)
 		}
 		time.Sleep(time.Duration(ttl) * time.Second)
 	}
