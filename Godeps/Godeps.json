@@ -3,13 +3,52 @@
 	"GoVersion": "go1.8",
 	"GodepVersion": "v79",
 	"Packages": [
-		"github.com/hashicorp/vault/api"
+		"./..."
 	],
 	"Deps": [
+		{
+			"ImportPath": "github.com/benschw/opin-go/config",
+			"Rev": "039c74cdf894f6182b1aa472be750ffa221bf361"
+		},
+		{
+			"ImportPath": "github.com/benschw/opin-go/ophttp",
+			"Rev": "039c74cdf894f6182b1aa472be750ffa221bf361"
+		},
+		{
+			"ImportPath": "github.com/benschw/opin-go/rando",
+			"Rev": "039c74cdf894f6182b1aa472be750ffa221bf361"
+		},
+		{
+			"ImportPath": "github.com/benschw/opin-go/rest",
+			"Rev": "039c74cdf894f6182b1aa472be750ffa221bf361"
+		},
+		{
+			"ImportPath": "github.com/benschw/srv-lb/dns",
+			"Rev": "c87a20cc531f1babdf710dc3db91dd69becb0e8b"
+		},
+		{
+			"ImportPath": "github.com/benschw/srv-lb/lb",
+			"Rev": "c87a20cc531f1babdf710dc3db91dd69becb0e8b"
+		},
+		{
+			"ImportPath": "github.com/davecgh/go-spew/spew",
+			"Comment": "v1.1.0",
+			"Rev": "346938d642f2ec3594ed81d874461961cd0faa76"
+		},
 		{
 			"ImportPath": "github.com/fatih/structs",
 			"Comment": "v1.0",
 			"Rev": "a720dfa8df582c51dee1b36feabb906bde1588bd"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.4.0-10-g18fca31",
+			"Rev": "18fca31550181693b3a834a15b74b564b3605876"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/consul/api",
+			"Comment": "v0.8.4-24-g5473255f",
+			"Rev": "5473255f9816e2b64d52cc054470d600b007d821"
 		},
 		{
 			"ImportPath": "github.com/hashicorp/errwrap",
@@ -64,6 +103,11 @@
 			"Rev": "630949a3c5fa3c613328e1b8256052cbc2327c9b"
 		},
 		{
+			"ImportPath": "github.com/hashicorp/serf/coordinate",
+			"Comment": "v0.8.1-50-g91fd53b",
+			"Rev": "91fd53b1d3e624389ed9a295a3fa380e5c7b9dfc"
+		},
+		{
 			"ImportPath": "github.com/hashicorp/vault/api",
 			"Comment": "v0.7.0-88-g9d013a07",
 			"Rev": "9d013a0707a8fe9e1a891abcc4e3a2105bd97fcb"
@@ -79,6 +123,14 @@
 			"Rev": "9d013a0707a8fe9e1a891abcc4e3a2105bd97fcb"
 		},
 		{
+			"ImportPath": "github.com/hydrogen18/stoppableListener",
+			"Rev": "827d760f0663fd2207d115e22dd1f55f1842467e"
+		},
+		{
+			"ImportPath": "github.com/miekg/dns",
+			"Rev": "e78414ef75607394ad7d917824f07f381df2eafa"
+		},
+		{
 			"ImportPath": "github.com/mitchellh/go-homedir",
 			"Rev": "b8bc1bf767474819792c23f32d8286a45736f1c6"
 		},
@@ -87,8 +139,27 @@
 			"Rev": "53818660ed4955e899c0bcafa97299a388bd7c8e"
 		},
 		{
+			"ImportPath": "github.com/pmezard/go-difflib/difflib",
+			"Comment": "v1.0.0",
+			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
+		},
+		{
+			"ImportPath": "github.com/satori/go.uuid",
+			"Comment": "v1.1.0-8-g5bf94b6",
+			"Rev": "5bf94b69c6b68ee1b541973bb8e1144db23a194b"
+		},
+		{
 			"ImportPath": "github.com/sethgrid/pester",
 			"Rev": "ad2265b06c1300b29bd9352e597121db34656d40"
+		},
+		{
+			"ImportPath": "github.com/streadway/amqp",
+			"Rev": "27859d32540aebd2e5befa52dc59ae8e6a0132b6"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Comment": "v1.1.4-66-gf6abca5",
+			"Rev": "f6abca593680b2315d2075e0f5e2a9751e3f431a"
 		},
 		{
 			"ImportPath": "golang.org/x/net/http2",
@@ -121,6 +192,10 @@
 		{
 			"ImportPath": "golang.org/x/text/unicode/norm",
 			"Rev": "f4b4367115ec2de254587813edaa901bc1c723a8"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "a3f3340b5840cee44f372bddb5880fcbc419b46a"
 		}
 	]
 }

@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
-	"net/http"
 	"os"
 
 	_ "expvar"
@@ -17,7 +15,6 @@ import (
 	"github.com/hashicorp/consul/api"
 )
 
-var metricsBind = flag.String("metrics", ":8081", "address to bind metrics to")
 var configPath = flag.String("config", "", "path to yaml config. omit to use consul")
 var consulPath = flag.String("consul-path", "chinchilla", "consul key path to find configuration in")
 var secretsPath = flag.String("secrets-path", "secret/chinchilla", "vault secrets path to find rabbitmq password in")
@@ -38,18 +35,13 @@ func main() {
 
 	flag.Parse()
 
-	// Start metrics Server
-	sock, err := net.Listen("tcp", *metricsBind)
+	// Start Chinchilla daemon
+	lbCfg, err := lb.DefaultConfig()
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
-	go func() {
-		http.Serve(sock, nil)
-	}()
-
-	// Start Chinchilla daemon
-	lb := lb.NewGeneric(lb.DefaultConfig())
+	lb := lb.NewGeneric(lbCfg)
 
 	var epp config.EndpointsProvider
 
