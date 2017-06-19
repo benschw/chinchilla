@@ -106,25 +106,29 @@ func getVaultRoleId(appRolePath string) (string, error) {
 }
 
 func getAwsSession() *session.Session {
-	awsEp := os.Getenv("S3_PORT_9000_TCP_ADDR")
-	awsEnv := os.Getenv("AWS_DEFAULT_REGION")
+	cfg := aws.NewConfig()
 
-	defaultResolver := endpoints.DefaultResolver()
-	s3CustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
-		if service == "s3" {
-			return endpoints.ResolvedEndpoint{
-				URL:           fmt.Sprintf("http://%s:9000", awsEp),
-				SigningRegion: awsEnv,
-			}, nil
+	// use custom resolver and path style s3 address if minio s3 server is
+	// discovered with docker links on port 9000
+	awsEp, usingMinioLocalS3 := os.LookupEnv("S3_PORT_9000_TCP_ADDR")
+	if usingMinioLocalS3 {
+		awsEnv := os.Getenv("AWS_DEFAULT_REGION")
+
+		defaultResolver := endpoints.DefaultResolver()
+		s3CustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
+			if service == "s3" {
+				return endpoints.ResolvedEndpoint{
+					URL:           fmt.Sprintf("http://%s:9000", awsEp),
+					SigningRegion: awsEnv,
+				}, nil
+			}
+
+			return defaultResolver.EndpointFor(service, region, optFns...)
 		}
-
-		return defaultResolver.EndpointFor(service, region, optFns...)
+		cfg.
+			WithEndpointResolver(endpoints.ResolverFunc(s3CustResolverFn)).
+			WithS3ForcePathStyle(true)
 	}
-
-	cfg := aws.NewConfig().
-		WithRegion(awsEnv).
-		WithEndpointResolver(endpoints.ResolverFunc(s3CustResolverFn)).
-		WithS3ForcePathStyle(true)
 
 	return session.Must(session.NewSessionWithOptions(session.Options{
 		Config: *cfg,
