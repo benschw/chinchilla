@@ -1,11 +1,18 @@
 package config
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/benschw/srv-lb/lb"
 	vaultapi "github.com/hashicorp/vault/api"
 )
@@ -71,5 +78,55 @@ func getVaultClient(l lb.GenericLoadBalancer) (*vaultapi.Logical, error) {
 }
 
 func getVaultRoleId(appRolePath string) (string, error) {
-	return "747e8ae2-f8ad-b32e-cf6a-329070efda5e", nil
+
+	parts := strings.Split(appRolePath, "/")
+	bucket := parts[2]
+	key := parts[3]
+
+	sess := getAwsSession()
+
+	svc := s3.New(sess)
+	input := &s3.GetObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	}
+
+	result, err := svc.GetObject(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			log.Println(aerr.Error())
+		}
+		return "", err
+	}
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(result.Body)
+	roleId := buf.String()
+
+	return fmt.Sprintf("%s", roleId), nil
+}
+
+func getAwsSession() *session.Session {
+	awsEp := os.Getenv("S3_PORT_9000_TCP_ADDR")
+	awsEnv := os.Getenv("AWS_DEFAULT_REGION")
+
+	defaultResolver := endpoints.DefaultResolver()
+	s3CustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
+		if service == "s3" {
+			return endpoints.ResolvedEndpoint{
+				URL:           fmt.Sprintf("http://%s:9000", awsEp),
+				SigningRegion: awsEnv,
+			}, nil
+		}
+
+		return defaultResolver.EndpointFor(service, region, optFns...)
+	}
+
+	cfg := aws.NewConfig().
+		WithRegion(awsEnv).
+		WithEndpointResolver(endpoints.ResolverFunc(s3CustResolverFn)).
+		WithS3ForcePathStyle(true)
+
+	return session.Must(session.NewSessionWithOptions(session.Options{
+		Config: *cfg,
+	}))
 }
