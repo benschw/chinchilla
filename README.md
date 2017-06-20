@@ -12,6 +12,21 @@ Chinchilla can be configured either with a yaml config, or with consul. In eithe
 config backend is watched for changes and will live-update your running chinchilla daemon to
 reflect the new configuration.
 
+## Configure
+
+	docker run -d \
+		-e "CONSUL_HTTP_ADDR=consul.foo.com:8500" \
+		-e "VAULT_SERVICENAME=vault" \
+		-e "VAULT_APPROLE_PATH=s3://bucket-name/chinchilla-role-id" \
+		-e "VAULT_APPROLE_SECRET_ID=${VAULT_APPROLE_SECRETID}" \
+		-e "AWS_ACCESS_KEY_ID=******" \
+		-e "AWS_SECRET_ACCESS_KEY=******" \
+		-e "AWS_DEFAULT_REGION=us-east-1" \
+		-e RABBITMQ_USER=guest \
+		-e RABBITMQ_SERVICENAME=rabbitmq \
+		benschw/chinchilla
+
+
 ## local demo
 
 	wget https://dl.bintray.com/mitchellh/consul/0.5.2_linux_amd64.zip

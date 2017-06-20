@@ -41,7 +41,7 @@ func getVaultClient(l lb.GenericLoadBalancer) (*vaultapi.Logical, error) {
 	if err != nil {
 		return nil, err
 	}
-	services, err := consul.Service(os.Getenv("VAULT_SERVICENAME"), "active")
+	services, err := consul.Service(os.Getenv("VAULT_SERVICENAME"), "actives")
 	if err != nil {
 		return nil, err
 	}

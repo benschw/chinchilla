@@ -19,3 +19,7 @@ package:
 	cp chinchilla_linux_amd64.gz dist/chinchilla_linux_amd64_latest.gz
 	cp chinchilla_linux_amd64.gz release/chinchilla_linux_amd64_$(git describe --tags).gz
 
+publish: docker
+	docker push benschw/chinchilla
+
+
