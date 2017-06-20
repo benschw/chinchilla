@@ -37,13 +37,18 @@ func getRabbitmqPasswordFromVault(l lb.GenericLoadBalancer, secretsPath string) 
 }
 
 func getVaultClient(l lb.GenericLoadBalancer) (*vaultapi.Logical, error) {
-	srvName := fmt.Sprintf("%s.service.consul", os.Getenv("VAULT_SERVICENAME"))
-
-	a, err := l.Next(srvName)
+	consul, err := NewConsulClient()
 	if err != nil {
 		return nil, err
 	}
-	host := fmt.Sprintf("http://%s:%d", a.Address, a.Port)
+	services, err := consul.Service(os.Getenv("VAULT_SERVICENAME"), "active")
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("%+v", services[0].Service)
+	protocol := "http"
+	svc := services[0].Service
+	host := fmt.Sprintf("%s://%s:%d", protocol, svc.Address, svc.Port)
 
 	log.Printf("Using vault address: '%s'", host)
 
