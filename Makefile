@@ -18,6 +18,8 @@ package:
 	mkdir -p dist release
 	cp chinchilla_linux_amd64.gz dist/chinchilla_linux_amd64_latest.gz
 	cp chinchilla_linux_amd64.gz release/chinchilla_linux_amd64_$(git describe --tags).gz
+	if [ $(git describe --tags | cut -c 1-1) == "1" ] ; then git describe --tags > release/1.x-latest; fi
+	if [ $(git describe --tags | cut -c 1-1) == "2" ] ; then git describe --tags > release/2.x-latest; fi
 
 publish: docker
 	docker push benschw/chinchilla
