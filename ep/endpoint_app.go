@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/benschw/chinchilla/config"
-	"github.com/codahale/metrics"
 	"github.com/streadway/amqp"
 )
 
@@ -36,9 +35,9 @@ type EndpointApp struct {
 func (m *EndpointApp) connect() error {
 	conn, connErr, err := DialRabbit(m.ap)
 	if err != nil {
+		log.Println("Problem connecting to Rabbitmq")
 		return err
 	}
-	metrics.Counter(metricName("connect")).AddN(1)
 	m.conn = conn
 	m.connErr = connErr
 	return nil
