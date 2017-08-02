@@ -46,7 +46,12 @@ func getVaultClient(l lb.GenericLoadBalancer) (*vaultapi.Logical, error) {
 		return nil, err
 	}
 	log.Printf("%+v", services[0].Service)
-	protocol := "http"
+
+	protocol := "https"
+	if _, isLocal := os.LookupEnv("S3_PORT_9000_TCP_ADDR"); isLocal {
+		protocol = "http"
+	}
+
 	svc := services[0].Service
 	host := fmt.Sprintf("%s://%s:%d", protocol, svc.Address, svc.Port)
 
