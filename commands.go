@@ -44,6 +44,8 @@ func StartDaemon(configPath string, conConfigPath string, consulPath string, sKP
 		}
 		kr = bytes
 	}
+	lb.RegisterStrategy(FirstStrategy, NewFirstStrategy)
+
 	lbCfg := lb.DefaultConfig()
 	lbCfg.Strategy = FirstStrategy
 
