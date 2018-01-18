@@ -8,6 +8,7 @@ import (
 	"github.com/benschw/chinchilla/config"
 	"github.com/benschw/chinchilla/ep"
 	_ "github.com/benschw/chinchilla/queue"
+	"github.com/benschw/srv-lb/dns"
 	"github.com/benschw/srv-lb/lb"
 	"github.com/hashicorp/consul/api"
 	"github.com/xordataexchange/crypt/encoding/secconf"
@@ -43,7 +44,10 @@ func StartDaemon(configPath string, conConfigPath string, consulPath string, sKP
 		}
 		kr = bytes
 	}
-	lb := lb.NewGeneric(lb.DefaultConfig())
+	lbCfg := lb.DefaultConfig()
+	lbCfg.Strategy = FirstStrategy
+
+	lb := lb.NewGeneric(lbCfg)
 
 	var ap config.RabbitAddressProvider
 	var epp config.EndpointsProvider
@@ -70,4 +74,30 @@ func StartDaemon(configPath string, conConfigPath string, consulPath string, sKP
 
 	svc := ep.NewApp(ap, epp)
 	return svc.Run()
+}
+
+const FirstStrategy lb.StrategyType = "first"
+
+func NewFirstStrategy(lib dns.Lookup) lb.GenericLoadBalancer {
+	return &FirstClb{lib}
+}
+
+type FirstClb struct {
+	dnsLib dns.Lookup
+}
+
+func (lb *FirstClb) Next(name string) (dns.Address, error) {
+	var add dns.Address
+
+	srvs, err := lb.dnsLib.LookupSRV(name)
+	if err != nil {
+		return add, err
+	}
+
+	ip, err := lb.dnsLib.LookupA(srvs[0].Target)
+	if err != nil {
+		return add, err
+	}
+
+	return dns.Address{Address: ip, Port: srvs[0].Port}, nil
 }
