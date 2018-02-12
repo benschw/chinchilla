@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/benschw/chinchilla",
-	"GoVersion": "go1.6",
-	"GodepVersion": "v62",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v80",
 	"Deps": [
 		{
 			"ImportPath": "github.com/benschw/opin-go/config",
@@ -21,11 +21,15 @@
 		},
 		{
 			"ImportPath": "github.com/benschw/srv-lb/dns",
-			"Rev": "9a57cc299d0c19664e2a82b54418d42388901717"
+			"Rev": "9b673aaefeb0b00c7c36b1413acbe7312b3ad932"
 		},
 		{
 			"ImportPath": "github.com/benschw/srv-lb/lb",
-			"Rev": "9a57cc299d0c19664e2a82b54418d42388901717"
+			"Rev": "9b673aaefeb0b00c7c36b1413acbe7312b3ad932"
+		},
+		{
+			"ImportPath": "github.com/benschw/srv-lb/strategy/first",
+			"Rev": "9b673aaefeb0b00c7c36b1413acbe7312b3ad932"
 		},
 		{
 			"ImportPath": "github.com/codahale/hdrhistogram",

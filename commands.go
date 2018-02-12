@@ -9,6 +9,7 @@ import (
 	"github.com/benschw/chinchilla/ep"
 	_ "github.com/benschw/chinchilla/queue"
 	"github.com/benschw/srv-lb/lb"
+	"github.com/benschw/srv-lb/strategy/first"
 	"github.com/hashicorp/consul/api"
 	"github.com/xordataexchange/crypt/encoding/secconf"
 )
@@ -43,7 +44,11 @@ func StartDaemon(configPath string, conConfigPath string, consulPath string, sKP
 		}
 		kr = bytes
 	}
-	lb := lb.NewGeneric(lb.DefaultConfig())
+	lbCfg, err := first.Config()
+	if err != nil {
+		return err
+	}
+	lb := lb.NewGeneric(lbCfg)
 
 	var ap config.RabbitAddressProvider
 	var epp config.EndpointsProvider
