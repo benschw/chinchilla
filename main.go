@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/benschw/srv-lb/strategy/first"
+
 	_ "expvar"
 
 	"github.com/benschw/chinchilla/config"
@@ -36,7 +38,7 @@ func main() {
 	flag.Parse()
 
 	// Start Chinchilla daemon
-	lbCfg, err := lb.DefaultConfig()
+	lbCfg, err := first.Config()
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
