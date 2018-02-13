@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/benschw/chinchilla",
 	"GoVersion": "go1.8",
-	"GodepVersion": "v79",
+	"GodepVersion": "v80",
 	"Packages": [
 		"./..."
 	],
@@ -149,11 +149,15 @@
 		},
 		{
 			"ImportPath": "github.com/benschw/srv-lb/dns",
-			"Rev": "c87a20cc531f1babdf710dc3db91dd69becb0e8b"
+			"Rev": "9b673aaefeb0b00c7c36b1413acbe7312b3ad932"
 		},
 		{
 			"ImportPath": "github.com/benschw/srv-lb/lb",
-			"Rev": "c87a20cc531f1babdf710dc3db91dd69becb0e8b"
+			"Rev": "9b673aaefeb0b00c7c36b1413acbe7312b3ad932"
+		},
+		{
+			"ImportPath": "github.com/benschw/srv-lb/strategy/first",
+			"Rev": "9b673aaefeb0b00c7c36b1413acbe7312b3ad932"
 		},
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
