@@ -46,7 +46,12 @@ func getVaultClient(l lb.GenericLoadBalancer) (*vaultapi.Logical, error) {
 		return nil, err
 	}
 	log.Printf("%+v", services[0].Service)
-	protocol := "http"
+
+	protocol := "https"
+	if _, isLocal := os.LookupEnv("S3_PORT_9000_TCP_ADDR"); isLocal {
+		protocol = "http"
+	}
+
 	svc := services[0].Service
 	host := fmt.Sprintf("%s://%s:%d", protocol, svc.Address, svc.Port)
 
@@ -113,12 +118,11 @@ func getVaultRoleId(appRolePath string) (string, error) {
 func getAwsSession() *session.Session {
 	cfg := aws.NewConfig()
 
+	awsEnv := os.Getenv("AWS_DEFAULT_REGION")
 	// use custom resolver and path style s3 address if minio s3 server is
 	// discovered with docker links on port 9000
 	awsEp, usingMinioLocalS3 := os.LookupEnv("S3_PORT_9000_TCP_ADDR")
 	if usingMinioLocalS3 {
-		awsEnv := os.Getenv("AWS_DEFAULT_REGION")
-
 		defaultResolver := endpoints.DefaultResolver()
 		s3CustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
 			if service == "s3" {
@@ -134,6 +138,8 @@ func getAwsSession() *session.Session {
 			WithEndpointResolver(endpoints.ResolverFunc(s3CustResolverFn)).
 			WithS3ForcePathStyle(true)
 	}
+
+	cfg.WithRegion(awsEnv)
 
 	return session.Must(session.NewSessionWithOptions(session.Options{
 		Config: *cfg,

@@ -17,7 +17,8 @@ package:
 	gzip chinchilla_linux_amd64
 	mkdir -p dist release
 	cp chinchilla_linux_amd64.gz dist/chinchilla_linux_amd64_latest.gz
-	cp chinchilla_linux_amd64.gz release/chinchilla_linux_amd64_$(git describe --tags).gz
+	cp chinchilla_linux_amd64.gz release/chinchilla_linux_amd64_$(shell git describe --tags).gz
+	./latest-links.sh
 
 publish: docker
 	docker push benschw/chinchilla
