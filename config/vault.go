@@ -41,24 +41,27 @@ func getVaultClient(l lb.GenericLoadBalancer) (*vaultapi.Logical, error) {
 	if err != nil {
 		return nil, err
 	}
-	services, err := consul.Service(os.Getenv("VAULT_SERVICENAME"), "active")
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("%+v", services[0].Service)
-
-	protocol := "https"
-	if _, isLocal := os.LookupEnv("S3_PORT_9000_TCP_ADDR"); isLocal {
-		protocol = "http"
-	}
-
-	svc := services[0].Service
-	host := fmt.Sprintf("%s://%s:%d", protocol, svc.Address, svc.Port)
-
-	log.Printf("Using vault address: '%s'", host)
-
 	cfg := vaultapi.DefaultConfig()
-	cfg.Address = host
+	if _, useConsul := os.LookupEnv("VAULT_SERVICENAME"); useConsul {
+
+		services, err := consul.Service(os.Getenv("VAULT_SERVICENAME"), "active")
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("%+v", services[0].Service)
+
+		protocol := "https"
+		if _, isLocal := os.LookupEnv("S3_PORT_9000_TCP_ADDR"); isLocal {
+			protocol = "http"
+		}
+
+		svc := services[0].Service
+		host := fmt.Sprintf("%s://%s:%d", protocol, svc.Address, svc.Port)
+
+		cfg.Address = host
+	}
+	log.Printf("Using vault address: '%s'", cfg.Address)
+
 	client, err := vaultapi.NewClient(cfg)
 	if err != nil {
 		return nil, err
