@@ -10,8 +10,6 @@ services:
 env:
   - PATH=/home/travis/gopath/bin:$PATH
 
-before_install:
-  - make deps
 
 script:
   - make test
