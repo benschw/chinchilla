@@ -1,5 +1,5 @@
 deps:
-	go get github.com/golang/lint/golint
+	#go get github.com/golang/lint/golint
 	go get github.com/mitchellh/gox
 
 test:
