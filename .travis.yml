@@ -3,7 +3,10 @@ language: go
 go:
   - 1.8
   - tip
-
+addons:
+  apt:
+    packages:
+    - rabbitmq-server
 services:
   - rabbitmq
 
